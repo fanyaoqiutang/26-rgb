@@ -1,0 +1,20 @@
+# web框架
+flask==2.3.3
+flask-cors==4.0.0
+# 数据库
+pymysql==1.1.0
+# 向量知识库RAG
+langchain==0.1.10
+langchain-community==0.0.25
+pymilvus[lite]==2.4.4
+sentence-transformers==2.5.1
+# 语音识别 ASR
+openai-whisper==20231117
+# 语音合成 TTS
+edge-tts==6.1.10
+# 基础工具
+requests
+python-dotenv
+pillow
+numpy
+torch

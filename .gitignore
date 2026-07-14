@@ -1,0 +1,74 @@
+# ===================== Python 后端通用忽略 =====================
+# 虚拟环境
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.whl
+.env
+*.env
+.DS_Store
+*.log
+
+# ===================== 前端 Vue 项目忽略 =====================
+# 游客H5前端
+frontend_h5/node_modules/
+frontend_h5/dist/
+frontend_h5/.vite/
+frontend_h5/.env*
+frontend_h5/npm-debug.log*
+frontend_h5/yarn-debug.log*
+frontend_h5/yarn-error.log*
+
+# 管理后台前端
+frontend_admin/node_modules/
+frontend_admin/dist/
+frontend_admin/.vite/
+frontend_admin/.env*
+frontend_admin/npm-debug.log*
+
+# ===================== 临时运行文件（音频、视频、缓存） =====================
+runtime_file/audio_tmp/
+runtime_file/video_tmp/
+*.mp3
+*.mp4
+*.wav
+*.tmp
+temp*.wav
+
+# ===================== 向量数据库 & 模型大文件（必忽略，体积超大） =====================
+resource/model_cache/
+resource/scenic_doc/*.db
+*.milvus.db
+*.sqlite
+*.pth
+*.bin
+*.safetensors
+
+# ===================== SadTalker 数字人项目忽略 =====================
+sadtalker/checkpoints/
+sadtalker/results/
+sadtalker/tmp/
+sadtalker/.venv/
+sadtalker/__pycache__/
+sadtalker/node_modules/
+sadtalker/logs/
+
+# ===================== 系统文件、编辑器配置 =====================
+# Windows
+Thumbs.db
+Desktop.ini
+# Mac
+.DS_Store
+._.DS_Store
+# VSCode
+.vscode/
+*.swp
+*.swo
+# PyCharm
+.idea/
+*.iml
