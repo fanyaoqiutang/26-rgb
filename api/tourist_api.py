@@ -3,7 +3,7 @@ from ai_core.vector_milvus import search_knowledge
 from ai_core.llm_chat import llm_answer
 from ai_core.tts_edgetts import text_to_audio
 from database.db_crud import add_interact_record
-
+# from database.db_crud import add_chat_record, get_all_kb_docs
 tourist_bp = Blueprint("tourist", __name__)
 
 # 文本问答接口

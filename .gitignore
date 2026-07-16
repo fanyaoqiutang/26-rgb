@@ -1,8 +1,5 @@
-# 本项目虚拟环境
+# Python 虚拟环境
 venv/
-*/venv/
-
-# Python 编译缓存
 __pycache__/
 *.pyc
 *.pyo
@@ -11,39 +8,45 @@ __pycache__/
 dist/
 build/
 *.whl
-
-# 环境配置
-.env
-.env.local
-
-# 运行缓存资源
-data/audio_cache/*
-data/embedding_cache/*
-!data/audio_cache/.gitkeep
-!data/embedding_cache/.gitkeep
-
-# 日志、数据库临时文件
 *.log
-*.db
+
+# 前端依赖与打包产物
+frontend_h5/node_modules/
+frontend_h5/dist/
+frontend_h5/.vite/
+frontend_h5/npm-debug.log*
+frontend_admin/node_modules/
+frontend_admin/dist/
+frontend_admin/.vite/
+
+# 运行时缓存：音频、视频、向量库、数据库缓存
+runtime_file/
+resource/model_cache/
+*.milvus.db
 *.sqlite
-
-# 视频大文件
+*.db
+*.mp3
 *.mp4
-*.avi
-*.mov
+*.wav
+*.tmp
+temp*.wav
 
-# 系统文件
+# SadTalker 大体积模型、运行缓存
+sadtalker/
+SadTalker/
+
+# 隐私配置文件（每个人本地单独修改，不上传仓库）
+config.py
+
+# 系统垃圾文件
 Thumbs.db
 Desktop.ini
 .DS_Store
 ._.DS_Store
 
-# IDE配置
+# IDE 编辑器配置
 .idea/
 *.iml
 .vscode/
 *.swp
 *.swo
-
-# 其他无关子项目
-sadtalker/
