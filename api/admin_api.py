@@ -3,8 +3,7 @@ from database.db_crud import (
     get_all_knowledge, add_knowledge, update_knowledge, delete_knowledge,
     get_digital_human_config, save_dh_config, get_interact_stat
 )
-from ai_core.vector_milvus import init_milvus, text_embedding
-from pymilvus import Collection
+from ai_core.vector_milvus import get_text_embedding, get_client, COLLECTION_NAME
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -27,11 +26,17 @@ def knowledge_add():
 
     # 写入MySQL
     new_id = add_knowledge(content, tag)
+
     # 同步写入Milvus向量库
-    coll = init_milvus()
-    vec = text_embedding(content)
-    coll.insert([[new_id], [content], [vec], [tag]])
-    coll.flush()
+    try:
+        vec = get_text_embedding([content])[0]
+        get_client().insert(
+            collection_name=COLLECTION_NAME,
+            data=[{"text": content, "vector": vec}]
+        )
+    except Exception as e:
+        print(f"向量库写入失败: {e}")
+
     return jsonify({"code": 200, "msg": "新增成功", "id": new_id})
 
 
@@ -44,13 +49,20 @@ def knowledge_update():
     tag = req.get("tag")
     if not kid or not content:
         return jsonify({"code": 400, "msg": "参数缺失"})
+
     update_knowledge(kid, content, tag)
+
     # 更新向量库（简易方案：删除重插）
-    coll = init_milvus()
-    coll.delete(f"id == {kid}")
-    vec = text_embedding(content)
-    coll.insert([[kid], [content], [vec], [tag]])
-    coll.flush()
+    try:
+        get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
+        vec = get_text_embedding([content])[0]
+        get_client().insert(
+            collection_name=COLLECTION_NAME,
+            data=[{"id": kid, "text": content, "vector": vec}]
+        )
+    except Exception as e:
+        print(f"向量库更新失败: {e}")
+
     return jsonify({"code": 200, "msg": "修改成功"})
 
 
@@ -60,11 +72,15 @@ def knowledge_del():
     kid = request.json.get("id")
     if not kid:
         return jsonify({"code": 400, "msg": "缺少ID"})
+
     delete_knowledge(kid)
+
     # 删除向量库对应数据
-    coll = init_milvus()
-    coll.delete(f"id == {kid}")
-    coll.flush()
+    try:
+        get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
+    except Exception as e:
+        print(f"向量库删除失败: {e}")
+
     return jsonify({"code": 200, "msg": "删除成功"})
 
 

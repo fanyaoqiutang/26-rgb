@@ -88,7 +88,6 @@ def get_all_chat_records():
 def incr_daily_chat_count(visit_date: date):
     """当日对话次数 +1，不存在则新建一条记录"""
     conn, cur = get_conn()
-    # 先判断当天是否存在记录
     cur.execute("SELECT id FROM daily_visit_stat WHERE visit_date=%s", (visit_date,))
     row = cur.fetchone()
     if row:
@@ -137,13 +136,71 @@ def update_human_config(config_id: int, config_name: str, face_path: str, voice_
     close_conn(conn, cur)
     return True
 
-# ====================== 本地自测入口 ======================
+# ====================== 6. 知识库管理（admin_api 使用）======================
+def get_all_knowledge():
+    """获取全部知识库文档（别名）"""
+    return get_all_kb_docs()
+
+def add_knowledge(content: str, tag: str = "通用"):
+    """新增知识库文档"""
+    return add_kb_doc(title=content[:50] if len(content) > 50 else content, content=content, category=tag)
+
+def update_knowledge(kid: int, content: str, tag: str = "通用"):
+    """更新知识库文档"""
+    conn, cur = get_conn()
+    sql = "UPDATE kb_document SET doc_title=%s, doc_content=%s, category=%s WHERE id=%s"
+    title = content[:50] if len(content) > 50 else content
+    cur.execute(sql, (title, content, tag, kid))
+    conn.commit()
+    close_conn(conn, cur)
+    return True
+
+def delete_knowledge(kid: int):
+    """删除知识库文档"""
+    return del_kb_doc(kid)
+
+# ====================== 7. 数字人配置（admin_api 使用）======================
+def get_digital_human_config():
+    """获取数字人配置（别名）"""
+    return get_default_human_config()
+
+def save_dh_config(dh_name: str, voice: str, style: str):
+    """保存数字人配置"""
+    conn, cur = get_conn()
+    sql = "UPDATE digital_human_config SET config_name=%s, voice_type=%s, costume_style=%s WHERE is_default=1"
+    cur.execute(sql, (dh_name, voice, style))
+    conn.commit()
+    close_conn(conn, cur)
+    return True
+
+# ====================== 8. 统计接口（admin_api 使用）======================
+def get_interact_stat(days: int = 7):
+    """获取最近N天的交互统计"""
+    conn, cur = get_conn()
+    sql = """
+        SELECT visit_date, chat_count, user_count
+        FROM daily_visit_stat
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+        ORDER BY visit_date ASC
+    """
+    cur.execute(sql, (days,))
+    rows = cur.fetchall()
+    cols = [desc[0] for desc in cur.description]
+    res = [dict(zip(cols, r)) for r in rows]
+    close_conn(conn, cur)
+    return res
+
+# ====================== 9. 交互记录（tourist_api 使用）======================
+def add_interact_record(user_input: str, ai_answer: str, emotion_tag: str = "中性"):
+    """新增交互记录（别名）"""
+    return add_chat_record(user_input, ai_answer, emotion_tag)
+
+# ====================== 测试入口 ======================
 if __name__ == "__main__":
-    # 测试数据库CRUD是否正常
     print("=== 测试登录admin账号 ===")
     uid = admin_login("admin", "e10adc3949ba59abbe56e057f20f883e")
     print("管理员ID：", uid)
 
-    print("=== 读取默认数字人配置 ===")
+    print("\n=== 读取默认数字人配置 ===")
     human_cfg = get_default_human_config()
     print(human_cfg)
