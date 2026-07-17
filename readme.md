@@ -44,6 +44,8 @@ admin_user、kb_document、chat_record、daily_visit_stat、digital_human_config
 内置默认账号
 后台管理员账号：admin，密码：123456
 
+初次运行执行 vector_milvus.py 自动生成向量库。
+
 五、后端 Python 环境初始化
 1. 创建并激活虚拟环境
 bash

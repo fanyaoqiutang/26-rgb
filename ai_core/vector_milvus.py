@@ -8,7 +8,7 @@ from config import SCENIC_DOC_DIR, LLM_CONFIG
 dashscope.api_key = LLM_CONFIG["api_key"]
 COLLECTION_NAME = "scenic_kb"
 EMBEDDING_DIM = 1536
-DB_FILE_PATH = "./milvus_scenic.db"
+DB_FILE_PATH = "../milvus_scenic.db"
 
 client = MilvusClient(uri=DB_FILE_PATH)
 

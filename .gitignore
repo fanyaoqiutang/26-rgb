@@ -25,12 +25,15 @@ resource/model_cache/
 *.milvus.db
 *.sqlite
 *.db
-!milvus_scenic.db
+milvus_scenic.db/
+*.lock
 *.mp3
 *.mp4
 *.wav
 *.tmp
 temp*.wav
+temp/
+output_video/
 
 # SadTalker 大体积模型、运行缓存
 sadtalker/
