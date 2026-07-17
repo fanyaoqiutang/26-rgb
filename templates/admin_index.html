@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数字人导览-管理后台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand fs-4">景区AI数字人管理后台</span>
+            <a href="/admin/login" class="btn btn-outline-light">退出登录</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="row gap-4">
+            <div class="col-md-3">
+                <div class="card p-4 text-center">
+                    <h4>知识库管理</h4>
+                    <p>维护景点讲解、问答素材</p>
+                    <a href="/admin/knowledge" class="btn btn-primary">进入管理</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-4 text-center">
+                    <h4>数字人形象配置</h4>
+                    <p>更换人脸、音色、导游风格</p>
+                    <a href="/admin/human" class="btn btn-success">配置形象</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-4 text-center">
+                    <h4>运营数据大屏</h4>
+                    <p>客流量、问答、情感统计</p>
+                    <a href="/admin/dashboard" class="btn btn-info">查看数据</a>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card p-4 text-center">
+                    <h4>游客交互页</h4>
+                    <p>预览游客对话前端</p>
+                    <a href="/" target="_blank" class="btn btn-warning">打开游客端</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

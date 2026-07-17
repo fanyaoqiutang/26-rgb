@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>知识库管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">知识库管理</span>
+            <a href="/admin" class="btn btn-outline-light">返回首页</a>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <!-- 新增知识点表单 -->
+        <div class="card mb-4">
+            <div class="card-header">新增景点知识点</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label>标题</label>
+                    <input class="form-control" id="kbTitle" placeholder="如：XX景区历史起源">
+                </div>
+                <div class="mb-3">
+                    <label>讲解内容</label>
+                    <textarea class="form-control" rows="4" id="kbContent" placeholder="输入景点介绍、问答内容"></textarea>
+                </div>
+                <button class="btn btn-primary" id="addKbBtn">保存知识点</button>
+            </div>
+        </div>
+        <!-- 知识库列表 -->
+        <div class="card">
+            <div class="card-header">现有知识库列表</div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>标题</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="kbTableBody">
+                        <!-- JS动态渲染数据 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+<script src="/static/js/api.js"></script>
+<script src="/static/js/admin.js"></script>
+</body>
+</html>
