@@ -4,7 +4,7 @@ from database.db_crud import (
     get_digital_human_config, save_dh_config, get_interact_stat,
     get_emotion_report, get_hot_questions, get_dashboard_data
 )
-from ai_core.vector_milvus import get_text_embedding, get_client, COLLECTION_NAME
+from ai_core.vector_milvus import get_text_embedding, client, COLLECTION_NAME
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -27,7 +27,7 @@ def knowledge_add():
 
     try:
         vec = get_text_embedding([content])[0]
-        get_client().insert(
+        client.insert(
             collection_name=COLLECTION_NAME,
             data=[{"text": content, "vector": vec}]
         )
@@ -49,9 +49,9 @@ def knowledge_update():
     update_knowledge(kid, content, tag)
 
     try:
-        get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
+        client.delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
         vec = get_text_embedding([content])[0]
-        get_client().insert(
+        client.insert(
             collection_name=COLLECTION_NAME,
             data=[{"id": kid, "text": content, "vector": vec}]
         )
@@ -70,7 +70,7 @@ def knowledge_del():
     delete_knowledge(kid)
 
     try:
-        get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
+        client.delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
     except Exception as e:
         print(f"向量库删除失败: {e}")
 

@@ -1,4 +1,5 @@
 #安装语句 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+# pip install openai-whisper --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple
 # web框架
 flask==2.3.3
 flask-cors==4.0.0

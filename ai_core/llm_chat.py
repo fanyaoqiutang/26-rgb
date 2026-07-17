@@ -7,14 +7,24 @@ API_KEY = LLM_CONFIG["api_key"]
 
 def get_guide_answer(user_question: str, user_tag: str = "通用游客") -> str:
     context = search_relevant_context(user_question)
-    prompt = f"""
-你是灵山景区专业导游，严格按照参考资料回答游客问题，语言口语简洁，禁止编造资料以外内容。
-游客偏好：{user_tag}，回答时适当结合其兴趣推荐相关内容。
+
+    if context.strip():
+        prompt = f"""你是灵山景区AI导游，请根据以下参考资料回答问题。
+要求：口语化、简短，不要使用**等markdown符号，不要加粗。
+
 【参考资料】
 {context}
+
+游客偏好：{user_tag}
 【游客问题】
-{user_question}
-"""
+{user_question}"""
+    else:
+        prompt = f"""你是灵山景区AI导游，请用口语化、简短的语言回答问题。
+不要使用**等markdown符号，不要加粗，不要列条目符号。
+
+游客偏好：{user_tag}
+【游客问题】
+{user_question}"""
 
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -24,7 +34,7 @@ def get_guide_answer(user_question: str, user_tag: str = "通用游客") -> str:
     payload = {
         "model": "qwen-turbo",
         "input": {"prompt": prompt},
-        "parameters": {"result_format": "message", "temperature": 0.7}
+        "parameters": {"result_format": "message", "temperature": 0.5}
     }
 
     resp = requests.post(API_URL, headers=headers, json=payload)
@@ -34,6 +44,7 @@ def get_guide_answer(user_question: str, user_tag: str = "通用游客") -> str:
         return f"接口错误：{res_data['code']} {res_data['message']}"
 
     answer = res_data["output"]["choices"][0]["message"]["content"]
+    answer = answer.replace("**", "").replace("*", "")
     return answer
 
 if __name__ == "__main__":

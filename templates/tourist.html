@@ -75,7 +75,8 @@ function addAudio(url) {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
   div.className = 'msg msg-ai audio-player';
-  div.innerHTML = `<audio controls src="/api/common/${url.split('/').pop()}"></audio>`;
+  const fileName = url.split('\\').pop().split('/').pop();
+  div.innerHTML = `<audio controls src="/api/common/audio/${fileName}"></audio>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
 }
