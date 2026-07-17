@@ -25,6 +25,7 @@ resource/model_cache/
 *.milvus.db
 *.sqlite
 *.db
+!milvus_scenic.db
 *.mp3
 *.mp4
 *.wav
