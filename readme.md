@@ -46,6 +46,10 @@ admin_user、kb_document、chat_record、daily_visit_stat、digital_human_config
 
 初次运行执行 vector_milvus.py 自动生成向量库。
 
+手动下载开源数字人项目
+https://gitee.com/chen_jian1994/awesome-digital-human-live2d/repository/archive/develop.zip
+解压后放入项目根目录
+
 五、后端 Python 环境初始化
 1. 创建并激活虚拟环境
 bash

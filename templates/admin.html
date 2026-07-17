@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 - 灵山景区</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
+.header { background: #1a1a2e; color: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+.header h1 { font-size: 20px; }
+.nav { display: flex; gap: 5px; }
+.nav button { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: #aaa; font-size: 14px; }
+.nav button.active { background: #667eea; color: #fff; }
+.content { padding: 20px 30px; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.card h3 { margin-bottom: 15px; color: #333; font-size: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.stat-card .num { font-size: 32px; font-weight: bold; color: #667eea; }
+.stat-card .label { color: #888; font-size: 13px; margin-top: 5px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+th { background: #fafafa; color: #666; }
+.btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; color: #fff; }
+.btn-primary { background: #667eea; }
+.btn-danger { background: #f56c6c; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+textarea, input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
+textarea { height: 100px; resize: vertical; }
+.form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.form-row > * { flex: 1; }
+.emotion-bar { display: flex; gap: 15px; margin-top: 10px; }
+.emotion-item { flex: 1; text-align: center; padding: 15px; border-radius: 8px; }
+.emotion-pos { background: #f0f9eb; color: #67c23a; }
+.emotion-neu { background: #f4f4f5; color: #909399; }
+.emotion-neg { background: #fef0f0; color: #f56c6c; }
+.chart-bar { height: 20px; background: #667eea; border-radius: 4px; margin-top: 5px; transition: width 0.5s; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🏔️ 灵山景区 · 管理后台</h1>
+  <div class="nav">
+    <button class="active" onclick="showPanel('dashboard')">数据大屏</button>
+    <button onclick="showPanel('knowledge')">知识库</button>
+    <button onclick="showPanel('character')">数字人</button>
+    <button onclick="showPanel('report')">分析报告</button>
+  </div>
+</div>
+<div class="content">
+
+  <!-- 数据大屏 -->
+  <div id="dashboard" class="panel active">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="card">
+      <h3> 近7日对话趋势</h3>
+      <div id="weeklyChart"></div>
+    </div>
+    <div class="card">
+      <h3>🔥 今日热门问答 TOP5</h3>
+      <table id="hotTable"><thead><tr><th>问题</th><th>频次</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- 知识库 -->
+  <div id="knowledge" class="panel">
+    <div class="card">
+      <h3>➕ 新增知识</h3>
+      <div class="form-row">
+        <input type="text" id="kbTag" placeholder="分类（如：景点介绍）" value="景点介绍">
+      </div>
+      <textarea id="kbContent" placeholder="输入讲解内容..."></textarea>
+      <button class="btn btn-primary" onclick="addKnowledge()">添加</button>
+    </div>
+    <div class="card">
+      <h3>📚 知识库列表</h3>
+      <table id="kbTable"><thead><tr><th>ID</th><th>标题</th><th>分类</th><th>时间</th><th>操作</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <!-- 数字人配置 -->
+  <div id="character" class="panel">
+    <div class="card">
+      <h3> 数字人形象配置</h3>
+      <div id="dhForm"></div>
+    </div>
+  </div>
+
+  <!-- 分析报告 -->
+  <div id="report" class="panel">
+    <div class="card">
+      <h3>😊 游客情感分布（近7天）</h3>
+      <div class="emotion-bar" id="emotionBar"></div>
+    </div>
+    <div class="card">
+      <h3> 高频问题 TOP10</h3>
+      <table id="hotQTable"><thead><tr><th>问题</th><th>出现次数</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if(id==='dashboard') loadDashboard();
+  if(id==='knowledge') loadKnowledge();
+  if(id==='character') loadDHConfig();
+  if(id==='report') loadReport();
+}
+
+async function loadDashboard() {
+  const res = await fetch('/api/admin/stat/dashboard');
+  const d = (await res.json()).data;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card"><div class="num">${d.total_chats||0}</div><div class="label">累计对话</div></div>
+    <div class="stat-card"><div class="num">${d.total_users||0}</div><div class="label">服务人次</div></div>
+    <div class="stat-card"><div class="num">${d.today_emotion?.find(e=>e.emotion_tag==='正面')?.count||0}</div><div class="label">今日正面</div></div>
+    <div class="stat-card"><div class="num">${d.today_hot_questions?.length||0}</div><div class="label">今日问题数</div></div>`;
+  let chartHtml = '';
+  const maxC = Math.max(...d.weekly_trend.map(x=>x.chat_count), 1);
+  d.weekly_trend.reverse().forEach(x => {
+    chartHtml += `<div style="margin-bottom:8px"><span style="font-size:12px;color:#888">${x.visit_date}</span><div class="chart-bar" style="width:${x.chat_count/maxC*100}%"></div><span style="font-size:12px">${x.chat_count}次</span></div>`;
+  });
+  document.getElementById('weeklyChart').innerHTML = chartHtml;
+  const hotBody = document.querySelector('#hotTable tbody');
+  hotBody.innerHTML = d.today_hot_questions.map(x => `<tr><td>${x.user_input}</td><td>${x.freq}</td></tr>`).join('');
+}
+
+async function loadKnowledge() {
+  const res = await fetch('/api/admin/knowledge/list');
+  const list = (await res.json()).data;
+  document.querySelector('#kbTable tbody').innerHTML = list.map(x =>
+    `<tr><td>${x.id}</td><td>${x.doc_title}</td><td>${x.category}</td><td>${x.create_time}</td>
+    <td><button class="btn btn-danger btn-sm" onclick="delKb(${x.id})">删除</button></td></tr>`
+  ).join('');
+}
+
+async function addKnowledge() {
+  const content = document.getElementById('kbContent').value.trim();
+  const tag = document.getElementById('kbTag').value.trim();
+  if(!content) return alert('内容不能为空');
+  await fetch('/api/admin/knowledge/add', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content, tag})});
+  document.getElementById('kbContent').value = '';
+  loadKnowledge();
+}
+
+async function delKb(id) {
+  if(!confirm('确定删除？')) return;
+  await fetch('/api/admin/knowledge/del', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id})});
+  loadKnowledge();
+}
+
+async function loadDHConfig() {
+  const res = await fetch('/api/admin/dh/config/get');
+  const cfg = (await res.json()).data || {};
+  document.getElementById('dhForm').innerHTML = `
+    <div class="form-row"><input type="text" id="dhName" placeholder="名称" value="${cfg.config_name||''}"></div>
+    <div class="form-row"><input type="text" id="dhVoice" placeholder="TTS音色" value="${cfg.voice_type||''}"></div>
+    <div class="form-row"><input type="text" id="dhStyle" placeholder="服装风格" value="${cfg.costume_style||''}"></div>
+    <button class="btn btn-primary" onclick="saveDH()">保存配置</button>`;
+}
+
+async function saveDH() {
+  await fetch('/api/admin/dh/config/save', {method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({dh_name:document.getElementById('dhName').value, voice:document.getElementById('dhVoice').value, style:document.getElementById('dhStyle').value})});
+  alert('保存成功');
+}
+
+async function loadReport() {
+  const [eRes, hRes] = await Promise.all([
+    fetch('/api/admin/stat/emotion?days=7'),
+    fetch('/api/admin/stat/hot_questions?days=7&top=10')
+  ]);
+  const emotions = (await eRes.json()).data;
+  const hotQs = (await hRes.json()).data;
+  const pos = emotions.find(e=>e.emotion_tag==='正面')?.count||0;
+  const neu = emotions.find(e=>e.emotion_tag==='中性')?.count||0;
+  const neg = emotions.find(e=>e.emotion_tag==='负面')?.count||0;
+  const total = pos+neu+neg||1;
+  document.getElementById('emotionBar').innerHTML = `
+    <div class="emotion-item emotion-pos"><div style="font-size:24px">${pos}</div><div>正面 ${Math.round(pos/total*100)}%</div></div>
+    <div class="emotion-item emotion-neu"><div style="font-size:24px">${neu}</div><div>中性 ${Math.round(neu/total*100)}%</div></div>
+    <div class="emotion-item emotion-neg"><div style="font-size:24px">${neg}</div><div>负面 ${Math.round(neg/total*100)}%</div></div>`;
+  document.querySelector('#hotQTable tbody').innerHTML = hotQs.map(x =>
+    `<tr><td>${x.user_input}</td><td>${x.freq}</td></tr>`).join('');
+}
+
+loadDashboard();
+</script>
+</body>
+</html>

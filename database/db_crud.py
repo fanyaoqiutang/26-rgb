@@ -195,6 +195,81 @@ def add_interact_record(user_input: str, ai_answer: str, emotion_tag: str = "中
     """新增交互记录（别名）"""
     return add_chat_record(user_input, ai_answer, emotion_tag)
 
+# ====================== 10. 情感分析报告 ======================
+def get_emotion_report(days: int = 7):
+    """获取最近N天的情感分布"""
+    conn, cur = get_conn()
+    sql = """
+        SELECT emotion_tag, COUNT(*) as count
+        FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+        GROUP BY emotion_tag
+    """
+    cur.execute(sql, (days,))
+    rows = cur.fetchall()
+    cols = [desc[0] for desc in cur.description]
+    res = [dict(zip(cols, r)) for r in rows]
+    close_conn(conn, cur)
+    return res
+
+
+# ====================== 11. 热门问答 ======================
+def get_hot_questions(days: int = 7, top_n: int = 10):
+    """获取最近N天的高频问题"""
+    conn, cur = get_conn()
+    sql = """
+        SELECT user_input, COUNT(*) as freq
+        FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+        GROUP BY user_input
+        ORDER BY freq DESC
+        LIMIT %s
+    """
+    cur.execute(sql, (days, top_n))
+    rows = cur.fetchall()
+    cols = [desc[0] for desc in cur.description]
+    res = [dict(zip(cols, r)) for r in rows]
+    close_conn(conn, cur)
+    return res
+
+
+# ====================== 12. 数据大屏概览 ======================
+def get_dashboard_data():
+    """获取大屏核心运营数据"""
+    conn, cur = get_conn()
+
+    cur.execute("SELECT SUM(chat_count) as total_chats, SUM(user_count) as total_users FROM daily_visit_stat")
+    total = dict(zip([desc[0] for desc in cur.description], cur.fetchone()))
+
+    cur.execute("""
+        SELECT emotion_tag, COUNT(*) as count
+        FROM chat_record
+        WHERE visit_date = CURDATE()
+        GROUP BY emotion_tag
+    """)
+    today_emotion = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT user_input, COUNT(*) as freq
+        FROM chat_record
+        WHERE visit_date = CURDATE()
+        GROUP BY user_input ORDER BY freq DESC LIMIT 5
+    """)
+    today_hot = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
+
+    cur.execute("SELECT visit_date, chat_count FROM daily_visit_stat ORDER BY visit_date DESC LIMIT 7")
+    weekly_trend = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
+
+    close_conn(conn, cur)
+
+    return {
+        "total_chats": total.get("total_chats", 0),
+        "total_users": total.get("total_users", 0),
+        "today_emotion": today_emotion,
+        "today_hot_questions": today_hot,
+        "weekly_trend": weekly_trend,
+    }
+
 # ====================== 测试入口 ======================
 if __name__ == "__main__":
     print("=== 测试登录admin账号 ===")

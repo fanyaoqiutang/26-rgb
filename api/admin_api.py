@@ -1,21 +1,20 @@
 from flask import Blueprint, request, jsonify
 from database.db_crud import (
     get_all_knowledge, add_knowledge, update_knowledge, delete_knowledge,
-    get_digital_human_config, save_dh_config, get_interact_stat
+    get_digital_human_config, save_dh_config, get_interact_stat,
+    get_emotion_report, get_hot_questions, get_dashboard_data
 )
 from ai_core.vector_milvus import get_text_embedding, get_client, COLLECTION_NAME
 
 admin_bp = Blueprint("admin", __name__)
 
 
-# 1. 知识库-获取全部景点资料
 @admin_bp.route("/knowledge/list", methods=["GET"])
 def knowledge_list():
     data_list = get_all_knowledge()
     return jsonify({"code": 200, "data": data_list})
 
 
-# 2. 知识库-新增景点资料（同步写入Milvus向量库）
 @admin_bp.route("/knowledge/add", methods=["POST"])
 def knowledge_add():
     req = request.json
@@ -24,10 +23,8 @@ def knowledge_add():
     if not content:
         return jsonify({"code": 400, "msg": "讲解内容不能为空"})
 
-    # 写入MySQL
     new_id = add_knowledge(content, tag)
 
-    # 同步写入Milvus向量库
     try:
         vec = get_text_embedding([content])[0]
         get_client().insert(
@@ -40,7 +37,6 @@ def knowledge_add():
     return jsonify({"code": 200, "msg": "新增成功", "id": new_id})
 
 
-# 3. 知识库-编辑景点资料
 @admin_bp.route("/knowledge/update", methods=["POST"])
 def knowledge_update():
     req = request.json
@@ -52,7 +48,6 @@ def knowledge_update():
 
     update_knowledge(kid, content, tag)
 
-    # 更新向量库（简易方案：删除重插）
     try:
         get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
         vec = get_text_embedding([content])[0]
@@ -66,7 +61,6 @@ def knowledge_update():
     return jsonify({"code": 200, "msg": "修改成功"})
 
 
-# 4. 知识库-删除景点资料
 @admin_bp.route("/knowledge/del", methods=["POST"])
 def knowledge_del():
     kid = request.json.get("id")
@@ -75,7 +69,6 @@ def knowledge_del():
 
     delete_knowledge(kid)
 
-    # 删除向量库对应数据
     try:
         get_client().delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
     except Exception as e:
@@ -84,14 +77,12 @@ def knowledge_del():
     return jsonify({"code": 200, "msg": "删除成功"})
 
 
-# 5. 数字人配置-获取当前配置
 @admin_bp.route("/dh/config/get", methods=["GET"])
 def dh_config_get():
     cfg = get_digital_human_config()
     return jsonify({"code": 200, "data": cfg})
 
 
-# 6. 数字人配置-保存修改
 @admin_bp.route("/dh/config/save", methods=["POST"])
 def dh_config_save():
     req = request.json
@@ -103,9 +94,29 @@ def dh_config_save():
     return jsonify({"code": 200, "msg": "数字人配置保存成功"})
 
 
-# 7. 运营数据统计接口（大屏）
 @admin_bp.route("/stat/interact", methods=["GET"])
 def stat_interact():
     days = request.args.get("days", 7, type=int)
     stat_data = get_interact_stat(days)
     return jsonify({"code": 200, "data": stat_data})
+
+
+@admin_bp.route("/stat/emotion", methods=["GET"])
+def stat_emotion():
+    days = request.args.get("days", 7, type=int)
+    report = get_emotion_report(days)
+    return jsonify({"code": 200, "data": report})
+
+
+@admin_bp.route("/stat/hot_questions", methods=["GET"])
+def stat_hot_questions():
+    days = request.args.get("days", 7, type=int)
+    top_n = request.args.get("top", 10, type=int)
+    hot_list = get_hot_questions(days, top_n)
+    return jsonify({"code": 200, "data": hot_list})
+
+
+@admin_bp.route("/stat/dashboard", methods=["GET"])
+def stat_dashboard():
+    dashboard = get_dashboard_data()
+    return jsonify({"code": 200, "data": dashboard})
