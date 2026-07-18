@@ -3,7 +3,7 @@ from api.tourist_api import tourist_bp
 from api.admin_api import admin_bp
 from api.common_api import common_bp
 import os
-
+# http://localhost:3000数字人
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
 app.secret_key = "scenic_digital_human_2024"
 

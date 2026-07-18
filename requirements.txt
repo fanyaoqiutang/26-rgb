@@ -25,3 +25,4 @@ dashscope
 langchain
 langchain langchain-text-splitters
 edge-tts
+audioop-lts

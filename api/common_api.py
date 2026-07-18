@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import Blueprint, request, jsonify, send_file, make_response
 import os
 from utils.file_util import save_upload_file, get_file_abs_path
 from config import BASE_DIR
@@ -26,4 +26,8 @@ def get_audio(filename):
     audio_full_path = get_file_abs_path(f"data/audio_cache/{filename}")
     if not os.path.exists(audio_full_path):
         return jsonify({"code": 404, "msg": "音频文件不存在"})
-    return send_file(audio_full_path)
+    response = make_response(send_file(audio_full_path))
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = '*'
+    return response

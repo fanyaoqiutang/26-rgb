@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live2D 数字人展示</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: 'Microsoft YaHei', sans-serif; }
+h1 { color: #fff; margin-bottom: 20px; font-size: 24px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+#canvas-container { position: relative; width: 600px; height: 600px; background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+canvas { display: block; width: 100%; height: 100%; }
+.controls { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.controls button { padding: 10px 20px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-size: 14px; backdrop-filter: blur(5px); transition: all 0.3s; }
+.controls button:hover { background: rgba(255,255,255,0.2); }
+.controls button.active { background: #667eea; border-color: #667eea; }
+.model-selector { margin-bottom: 20px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.model-selector button { padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; background: rgba(255,255,255,0.05); color: #ccc; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+.model-selector button:hover { background: rgba(255,255,255,0.15); color: #fff; }
+.model-selector button.active { background: #667eea; border-color: #667eea; color: #fff; }
+</style>
+</head>
+<body>
+<h1>Live2D 数字人展示</h1>
+<div class="model-selector" id="modelSelector"></div>
+<div id="canvas-container">
+  <canvas id="live2dCanvas"></canvas>
+</div>
+<div class="controls">
+  <button onclick="playMotion('idle')">待机动作</button>
+  <button onclick="playMotion('tap_body')">点击动作</button>
+  <button onclick="toggleLipSync()">口型同步</button>
+</div>
+
+<script src="/live2d_digital/web/public/sentio/core/live2dcubismcore.min.js"></script>
+<script>
+const models = [
+  { name: 'Haru', path: '/live2d_digital/web/public/sentio/characters/free/Haru/Haru.model3.json' },
+  { name: 'Mao', path: '/live2d_digital/web/public/sentio/characters/free/Mao/Mao.model3.json' },
+  { name: 'Hiyori', path: '/live2d_digital/web/public/sentio/characters/free/Hiyori/Hiyori.model3.json' },
+  { name: 'Kei', path: '/live2d_digital/web/public/sentio/characters/free/Kei/Kei.model3.json' },
+  { name: 'Shizuku', path: '/live2d_digital/web/public/sentio/characters/free/Shizuku/Shizuku.model3.json' },
+  { name: 'Chitose', path: '/live2d_digital/web/public/sentio/characters/free/Chitose/Chitose.model3.json' },
+];
+
+let currentModel = null;
+let lipSyncEnabled = false;
+let audioContext = null;
+let analyser = null;
+
+const selector = document.getElementById('modelSelector');
+models.forEach((m, i) => {
+  const btn = document.createElement('button');
+  btn.textContent = m.name;
+  btn.onclick = () => loadModel(i);
+  selector.appendChild(btn);
+});
+
+async function loadModel(index) {
+  document.querySelectorAll('#modelSelector button').forEach((b, i) => b.classList.toggle('active', i === index));
+  const model = models[index];
+  try {
+    const res = await fetch(model.path);
+    const modelJson = await res.json();
+    const basePath = model.path.substring(0, model.path.lastIndexOf('/') + 1);
+    console.log('加载模型:', model.name, modelJson);
+    alert(`模型 ${model.name} 配置加载成功！\n\n完整Live2D渲染需要Cubism SDK的完整运行时，当前项目使用的是awesome-digital-human-live2d的Next.js前端。\n\n要查看完整效果，请运行：\n1. 后端: cd live2d_digital && python main.py\n2. 前端: cd live2d_digital/web && npm run dev`);
+  } catch(e) {
+    alert('加载失败: ' + e.message);
+  }
+}
+
+function playMotion(type) {
+  alert('动作播放需要完整Live2D运行时支持');
+}
+
+function toggleLipSync() {
+  lipSyncEnabled = !lipSyncEnabled;
+  alert('口型同步: ' + (lipSyncEnabled ? '开启' : '关闭'));
+}
+
+loadModel(0);
+</script>
+</body>
+</html>

@@ -53,10 +53,14 @@ https://gitee.com/chen_jian1994/awesome-digital-human-live2d/repository/archive/
 系统前置依赖：FFmpeg
 winget install Gyan.FFmpeg
 
+终端在虚拟环境中
+输入 cd live2d_digital\web 跳转到数字人项目目录
+npm install
+# 如果不行就 npm install --legacy-peer-deps --registry=https://registry.npmmirror.com
+npm run dev
+
 五、后端 Python 环境初始化
 1. 创建并激活虚拟环境
-bash
-运行
 # 创建虚拟环境
 python -m venv venv
 
@@ -67,39 +71,24 @@ venv\Scripts\activate
 source venv/bin/activate
 激活成功后终端前缀出现 (venv)。
 2. 安装全部依赖
-bash
-运行
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 六、知识库初始化（灵山胜境景区资料）
 将景区 Word 文档放入目录：docs/scenic_files/
 执行知识库初始化脚本，自动解析文档并存入 Milvus 向量库
-bash
-运行
 python init_kb.py
 控制台输出入库文本片段数量，代表知识库构建完成。
-七、数字人 SadTalker 环境部署
-项目根目录拉取 SadTalker 源码
-bash
-运行
-git clone https://github.com/OpenTalker/SadTalker.git
-进入sadtalker文件夹，按照官方 README 安装依赖、下载预训练模型权重
-在 resource/human_face/ 放入正面人脸图片，命名为 base.png
-八、启动后端服务
+七、启动后端服务
 虚拟环境保持激活状态，执行：
 bash
 运行
 python main.py
 控制台输出 Running on http://127.0.0.1:5000 代表后端接口启动成功。
-九、前端页面启动
+八、前端页面启动
 1. 游客移动端 H5
-bash
-运行
 cd frontend_h5
 npm install
 npm run dev
 2. 景区管理后台
-bash
-运行
 cd frontend_admin
 npm install
 npm run dev

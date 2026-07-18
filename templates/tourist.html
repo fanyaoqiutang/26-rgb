@@ -9,10 +9,10 @@
 body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
 .admin-entry { position: fixed; top: 15px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: #fff; border-radius: 20px; text-decoration: none; font-size: 13px; backdrop-filter: blur(5px); transition: background 0.3s; z-index: 10; }
 .admin-entry:hover { background: rgba(255,255,255,0.4); }
-.main-layout { display: flex; width: 1100px; height: 700px; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+.main-layout { display: flex; width: 1400px; height: 700px; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
 
 /* 左侧景区导航 */
-.sidebar { width: 320px; background: #f8f9fa; border-right: 1px solid #eee; display: flex; flex-direction: column; }
+.sidebar { width: 280px; background: #f8f9fa; border-right: 1px solid #eee; display: flex; flex-direction: column; }
 .sidebar-header { padding: 20px; border-bottom: 1px solid #eee; }
 .sidebar-header h2 { font-size: 18px; color: #333; margin-bottom: 12px; }
 .search-box { position: relative; }
@@ -29,8 +29,8 @@ body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(1
 .spot-item:hover { background: #667eea; color: #fff; }
 .spot-item.active { background: #667eea; color: #fff; }
 
-/* 右侧聊天区 */
-.chat-area { flex: 1; display: flex; flex-direction: column; }
+/* 中间聊天区 */
+.chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .chat-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; }
 .chat-header img { width: 40px; height: 40px; border-radius: 50%; }
 .chat-header-info h3 { font-size: 15px; color: #333; }
@@ -69,6 +69,11 @@ body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(1
 @keyframes wave { 0%,100%{transform:scaleY(0.5)} 50%{transform:scaleY(1.5)} }
 @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
 .character-img { width: 40px; height: 40px; border-radius: 50%; animation: float 3s ease-in-out infinite; }
+
+/* 右侧Live2D数字人区域 */
+.live2d-panel { width: 380px; border-left: 1px solid #eee; position: relative; background: linear-gradient(180deg, #e8f4f8 0%, #f0e6ff 100%); overflow: hidden; }
+.live2d-panel iframe { width: 100%; height: 100%; border: none; }
+.live2d-label { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(102,126,234,0.85); color: #fff; padding: 4px 16px; border-radius: 12px; font-size: 12px; pointer-events: none; z-index: 2; }
 </style>
 </head>
 <body>
@@ -86,7 +91,7 @@ body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(1
     <div class="scenic-list" id="scenicList"></div>
   </div>
 
-  <!-- 右侧聊天区 -->
+  <!-- 中间聊天区 -->
   <div class="chat-area">
     <div class="chat-header">
       <img src="/static/picture.png" class="character-img" alt="数字人">
@@ -114,6 +119,12 @@ body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(1
 
       </button>
     </div>
+  </div>
+
+  <!-- 右侧Live2D数字人 -->
+  <div class="live2d-panel">
+    <iframe id="live2dFrame" src="http://localhost:3000/sentio?embed=true" allow="autoplay"></iframe>
+    <div class="live2d-label">🎀 AI导游小灵</div>
   </div>
 </div>
 
@@ -233,14 +244,45 @@ async function sendFeedback(btn, emotion) {
   });
 }
 
+let live2dNotified = false;
+
+let currentAudioId = 0;
+
 function addAudio(url) {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
   div.className = 'msg msg-ai audio-player';
   const fileName = url.split('\\').pop().split('/').pop();
-  div.innerHTML = `<audio controls src="/api/common/audio/${fileName}"></audio>`;
+  const audioSrc = "/api/common/audio/" + fileName;
+  const aid = ++currentAudioId;
+  div.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#666;">
+    <span id="audioStatus-${aid}">🔊 点击播放导游语音</span>
+    <button onclick="playGuideAudio('${audioSrc}',${aid})" style="padding:4px 12px;border:1px solid #667eea;border-radius:8px;background:#fff;color:#667eea;cursor:pointer;">▶ 播放</button>
+    <button onclick="stopGuideAudio()" style="padding:4px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#999;cursor:pointer;">⏹ 停止</button>
+  </div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
+}
+
+function playGuideAudio(audioSrc, aid) {
+  stopGuideAudio();
+  const status = document.getElementById('audioStatus-' + aid);
+  if (status) status.textContent = '🔊 播放中...';
+  const fullUrl = window.location.origin + audioSrc;
+  const iframe = document.getElementById('live2dFrame');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'playAudio', audioUrl: fullUrl, id: aid }, '*');
+  }
+}
+
+function stopGuideAudio() {
+  const iframe = document.getElementById('live2dFrame');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'stopAudio' }, '*');
+  }
+  document.querySelectorAll('[id^="audioStatus-"]').forEach(el => {
+    if (el.textContent.includes('播放中')) el.textContent = '🔊 已停止';
+  });
 }
 
 function showLoading() {
@@ -363,8 +405,16 @@ async function getRecommend() {
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
 
+function testMouth() {
+  const iframe = document.getElementById('live2dFrame');
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: 'testMouth' }, '*');
+  }
+}
+
 renderScenicList(scenicData);
 addMsg('欢迎来到灵山景区！点击左侧景点开始游览，或直接输入问题问我~', 'ai');
 </script>
+
 </body>
 </html>
