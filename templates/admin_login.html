@@ -20,9 +20,8 @@
             <button id="loginBtn" class="btn btn-primary w-100">登录后台</button>
         </div>
     </div>
-<script src="/static/js/api.js"></script>
-<script>
-    import {adminLogin} from "./api.js";
+<script type="module">
+    import {adminLogin} from "/static/js/api.js";
     document.getElementById("loginBtn").addEventListener("click",async ()=>{
         let user = document.getElementById("username").value;
         let pwd = document.getElementById("pwd").value;
@@ -30,7 +29,7 @@
         if(res.code===200){
             window.location.href="/admin";
         }else{
-            alert("账号密码错误");
+            alert(res.msg || "账号密码错误");
         }
     })
 </script>

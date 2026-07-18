@@ -4,6 +4,7 @@ from ai_core.llm_chat import get_guide_answer
 from ai_core.tts_edgetts import text_to_audio
 from ai_core.asr_whisper import audio_file_to_text
 from database.db_crud import add_interact_record
+from config import BASE_DIR
 import os
 
 tourist_bp = Blueprint("tourist", __name__)
@@ -39,10 +40,16 @@ def voice_chat():
     audio_file = request.files["audio"]
     user_tag = request.form.get("tag", "通用游客")
 
-    audio_path = f"data/audio_cache/{audio_file.filename}"
+    os.makedirs(os.path.join(BASE_DIR, "data", "audio_cache"), exist_ok=True)
+    audio_path = os.path.join(BASE_DIR, "data", "audio_cache", audio_file.filename)
     audio_file.save(audio_path)
 
-    question = audio_file_to_text(audio_path)
+    try:
+        question = audio_file_to_text(audio_path)
+    except Exception as e:
+        print(f"语音识别异常: {e}")
+        return jsonify({"code": 400, "msg": f"语音识别失败: {str(e)}"})
+
     if not question:
         return jsonify({"code": 400, "msg": "语音识别失败"})
 

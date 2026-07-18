@@ -5,6 +5,7 @@ from api.common_api import common_bp
 import os
 
 app = Flask(__name__, static_folder='static', static_url_path='/static', template_folder='templates')
+app.secret_key = "scenic_digital_human_2024"
 
 app.register_blueprint(tourist_bp, url_prefix="/api/tourist")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
@@ -12,7 +13,7 @@ app.register_blueprint(common_bp, url_prefix="/api/common")
 
 @app.route("/")
 def index():
-    return jsonify({"code": 200, "msg": "景区AI数字人导览系统运行中"})
+    return render_template_string(open('templates/tourist.html', encoding='utf-8').read())
 
 CHARACTER_PAGE = """
 <!DOCTYPE html>
@@ -73,6 +74,10 @@ def character_page():
 @app.route("/tourist")
 def tourist_page():
     return render_template_string(open('templates/tourist.html', encoding='utf-8').read())
+
+@app.route("/admin_login")
+def admin_login_page():
+    return render_template_string(open('templates/admin_login.html', encoding='utf-8').read())
 
 @app.route("/admin")
 def admin_page():

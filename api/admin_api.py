@@ -1,12 +1,27 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, session
 from database.db_crud import (
     get_all_knowledge, add_knowledge, update_knowledge, delete_knowledge,
     get_digital_human_config, save_dh_config, get_interact_stat,
-    get_emotion_report, get_hot_questions, get_dashboard_data
+    get_emotion_report, get_hot_questions, get_dashboard_data,
+    admin_login
 )
 from ai_core.vector_milvus import get_text_embedding, client, COLLECTION_NAME
+import hashlib
 
 admin_bp = Blueprint("admin", __name__)
+
+
+@admin_bp.route("/login", methods=["POST"])
+def login():
+    req = request.json
+    username = req.get("username", "")
+    password = req.get("password", "")
+    pwd_md5 = hashlib.md5(password.encode()).hexdigest()
+    uid = admin_login(username, pwd_md5)
+    if uid:
+        session["admin_id"] = uid
+        return jsonify({"code": 200, "msg": "登录成功"})
+    return jsonify({"code": 400, "msg": "账号密码错误"})
 
 
 @admin_bp.route("/knowledge/list", methods=["GET"])

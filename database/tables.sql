@@ -64,19 +64,15 @@ CREATE TABLE IF NOT EXISTS daily_visit_stat (
 -- =============================================
 -- 6. 建表：数字人形象配置表
 -- =============================================
-CREATE TABLE IF NOT EXISTS digital_human_config (
-    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
-    config_name VARCHAR(100) NOT NULL COMMENT '配置名称，如：古风导游',
-    face_image_path VARCHAR(255) NOT NULL COMMENT '数字人人脸底图路径',
-    voice_type VARCHAR(50) DEFAULT 'zh-CN-XiaoxiaoNeural' COMMENT 'TTS音色标识',
-    costume_style VARCHAR(50) COMMENT '服装风格描述',
-    is_default TINYINT DEFAULT 0 COMMENT '是否默认启用：0否 1是',
-    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数字人形象配置表';
-
--- 初始化一条默认数字人配置
-INSERT IGNORE INTO digital_human_config (config_name, face_image_path, is_default) 
-VALUES ('默认导游形象', './resource/human_face/base.png', 1);
+--CREATE TABLE IF NOT EXISTS digital_human_config (
+--    id INT PRIMARY KEY AUTO_INCREMENT COMMENT '主键ID',
+--    config_name VARCHAR(100) NOT NULL COMMENT '配置名称，如：古风导游',
+--    face_image_path VARCHAR(255) NOT NULL COMMENT '数字人人脸底图路径',
+--    voice_type VARCHAR(50) DEFAULT 'zh-CN-XiaoxiaoNeural' COMMENT 'TTS音色标识',
+--    costume_style VARCHAR(50) COMMENT '服装风格描述',
+--    is_default TINYINT DEFAULT 0 COMMENT '是否默认启用：0否 1是',
+--    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
+--) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数字人形象配置表';
 
 -- =============================================
 -- 执行完成后，执行下面语句验证：
