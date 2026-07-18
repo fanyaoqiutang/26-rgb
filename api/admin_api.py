@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify, session
 from database.db_crud import (
+    admin_login,
     get_all_knowledge, add_knowledge, update_knowledge, delete_knowledge,
     get_digital_human_config, save_dh_config, get_interact_stat,
     get_emotion_report, get_hot_questions, get_dashboard_data,
-    admin_login
+    get_focus_analysis, get_emotion_trend, generate_service_suggestions
 )
 from ai_core.vector_milvus import get_text_embedding, client, COLLECTION_NAME
 import hashlib
@@ -24,10 +25,35 @@ def login():
     return jsonify({"code": 400, "msg": "账号密码错误"})
 
 
+@admin_bp.route("/logout", methods=["POST"])
+def logout():
+    session.pop("admin_id", None)
+    return jsonify({"code": 200, "msg": "已退出"})
+
+
 @admin_bp.route("/knowledge/list", methods=["GET"])
 def knowledge_list():
-    data_list = get_all_knowledge()
-    return jsonify({"code": 200, "data": data_list})
+    try:
+        client.load_collection(collection_name=COLLECTION_NAME)
+        results = client.query(
+            collection_name=COLLECTION_NAME,
+            filter="id > 0",
+            output_fields=["id", "text"],
+            limit=1000
+        )
+        data_list = []
+        for i, item in enumerate(results):
+            title = item["text"][:50] if len(item["text"]) > 50 else item["text"]
+            data_list.append({
+                "id": item["id"],
+                "doc_title": title,
+                "category": "景区知识",
+                "create_time": "-"
+            })
+        return jsonify({"code": 200, "data": data_list})
+    except Exception as e:
+        print(f"读取Milvus失败: {e}")
+        return jsonify({"code": 200, "data": []})
 
 
 @admin_bp.route("/knowledge/add", methods=["POST"])
@@ -82,7 +108,10 @@ def knowledge_del():
     if not kid:
         return jsonify({"code": 400, "msg": "缺少ID"})
 
-    delete_knowledge(kid)
+    try:
+        delete_knowledge(kid)
+    except:
+        pass
 
     try:
         client.delete(collection_name=COLLECTION_NAME, filter=f"id == {kid}")
@@ -135,3 +164,24 @@ def stat_hot_questions():
 def stat_dashboard():
     dashboard = get_dashboard_data()
     return jsonify({"code": 200, "data": dashboard})
+
+
+@admin_bp.route("/stat/focus", methods=["GET"])
+def stat_focus():
+    days = request.args.get("days", 7, type=int)
+    data = get_focus_analysis(days)
+    return jsonify({"code": 200, "data": data})
+
+
+@admin_bp.route("/stat/emotion_trend", methods=["GET"])
+def stat_emotion_trend():
+    days = request.args.get("days", 7, type=int)
+    data = get_emotion_trend(days)
+    return jsonify({"code": 200, "data": data})
+
+
+@admin_bp.route("/stat/suggestions", methods=["GET"])
+def stat_suggestions():
+    days = request.args.get("days", 7, type=int)
+    data = generate_service_suggestions(days)
+    return jsonify({"code": 200, "data": data})

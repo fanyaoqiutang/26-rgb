@@ -235,24 +235,31 @@ def get_hot_questions(days: int = 7, top_n: int = 10):
 
 # ====================== 12. 数据大屏概览 ======================
 def get_dashboard_data():
-    """获取大屏核心运营数据"""
     conn, cur = get_conn()
 
     cur.execute("SELECT SUM(chat_count) as total_chats, SUM(user_count) as total_users FROM daily_visit_stat")
     total = dict(zip([desc[0] for desc in cur.description], cur.fetchone()))
 
+    cur.execute("SELECT COALESCE(SUM(chat_count),0) as today_chats FROM daily_visit_stat WHERE visit_date = CURDATE()")
+    today_chats = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COALESCE(SUM(chat_count),0) as week_chats
+        FROM daily_visit_stat
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    """)
+    week_chats = cur.fetchone()[0]
+
     cur.execute("""
         SELECT emotion_tag, COUNT(*) as count
-        FROM chat_record
-        WHERE visit_date = CURDATE()
+        FROM chat_record WHERE visit_date = CURDATE()
         GROUP BY emotion_tag
     """)
     today_emotion = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
 
     cur.execute("""
         SELECT user_input, COUNT(*) as freq
-        FROM chat_record
-        WHERE visit_date = CURDATE()
+        FROM chat_record WHERE visit_date = CURDATE()
         GROUP BY user_input ORDER BY freq DESC LIMIT 5
     """)
     today_hot = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
@@ -260,15 +267,144 @@ def get_dashboard_data():
     cur.execute("SELECT visit_date, chat_count FROM daily_visit_stat ORDER BY visit_date DESC LIMIT 7")
     weekly_trend = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
 
+    cur.execute("""
+        SELECT visit_date,
+            ROUND(COUNT(CASE WHEN emotion_tag='正面' THEN 1 END) / COUNT(*) * 100, 1) as satisfaction_rate
+        FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+        GROUP BY visit_date
+        ORDER BY visit_date DESC
+    """)
+    satisfaction_trend = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
+
     close_conn(conn, cur)
 
     return {
-        "total_chats": total.get("total_chats", 0),
-        "total_users": total.get("total_users", 0),
+        "total_chats": total.get("total_chats", 0) or 0,
+        "total_users": total.get("total_users", 0) or 0,
+        "today_chats": today_chats,
+        "week_chats": week_chats,
         "today_emotion": today_emotion,
         "today_hot_questions": today_hot,
         "weekly_trend": weekly_trend,
+        "satisfaction_trend": satisfaction_trend,
     }
+
+
+def get_focus_analysis(days: int = 7):
+    """分析游客关注点：从对话记录中提取高频关键词分类"""
+    conn, cur = get_conn()
+    cur.execute("""
+        SELECT user_input FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+    """, (days,))
+    rows = cur.fetchall()
+    close_conn(conn, cur)
+
+    focus_keywords = {
+        "景点介绍": ["景点", "介绍", "有什么", "哪里", "地方", "景区", "灵山", "梵宫", "大佛", "九龙", "祥符", "禅意", "小镇"],
+        "交通路线": ["交通", "路线", "怎么走", "地铁", "公交", "停车", "开车", "导航", "多远", "多久"],
+        "门票价格": ["门票", "价格", "多少钱", "优惠", "免费", "票", "学生", "老人", "儿童"],
+        "开放时间": ["时间", "开放", "关门", "几点", "营业", "早上", "晚上"],
+        "餐饮住宿": ["吃饭", "餐厅", "美食", "住宿", "酒店", "住", "吃", "特色"],
+        "游览建议": ["推荐", "路线", "攻略", "怎么玩", "最佳", "必看", "顺序", "安排"],
+        "历史文化": ["历史", "文化", "故事", "传说", "佛教", "建造", "年代", "意义"],
+        "其他": []
+    }
+
+    focus_count = {k: 0 for k in focus_keywords}
+    total = 0
+    for row in rows:
+        text = row[0].lower()
+        total += 1
+        matched = False
+        for category, keywords in focus_keywords.items():
+            if category == "其他":
+                continue
+            for kw in keywords:
+                if kw in text:
+                    focus_count[category] += 1
+                    matched = True
+                    break
+            if matched:
+                break
+        if not matched:
+            focus_count["其他"] += 1
+
+    result = []
+    for cat, count in sorted(focus_count.items(), key=lambda x: -x[1]):
+        if count > 0:
+            result.append({"focus": cat, "count": count, "percent": round(count/total*100, 1) if total > 0 else 0})
+    return result
+
+
+def get_emotion_trend(days: int = 7):
+    """获取每日情感趋势"""
+    conn, cur = get_conn()
+    sql = """
+        SELECT visit_date,
+            COUNT(*) as total,
+            COUNT(CASE WHEN emotion_tag='正面' THEN 1 END) as positive,
+            COUNT(CASE WHEN emotion_tag='中性' THEN 1 END) as neutral,
+            COUNT(CASE WHEN emotion_tag='负面' THEN 1 END) as negative
+        FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+        GROUP BY visit_date
+        ORDER BY visit_date ASC
+    """
+    cur.execute(sql, (days,))
+    rows = cur.fetchall()
+    cols = [desc[0] for desc in cur.description]
+    res = [dict(zip(cols, r)) for r in rows]
+    close_conn(conn, cur)
+    return res
+
+
+def generate_service_suggestions(days: int = 7):
+    """根据数据生成服务建议"""
+    conn, cur = get_conn()
+
+    cur.execute("""
+        SELECT COUNT(*) as total FROM chat_record WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+    """, (days,))
+    total = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT COUNT(*) as neg FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY) AND emotion_tag='负面'
+    """, (days,))
+    neg = cur.fetchone()[0]
+
+    cur.execute("""
+        SELECT user_input, COUNT(*) as freq FROM chat_record
+        WHERE visit_date >= DATE_SUB(CURDATE(), INTERVAL %s DAY)
+        GROUP BY user_input ORDER BY freq DESC LIMIT 3
+    """, (days,))
+    top_qs = [dict(zip([desc[0] for desc in cur.description], r)) for r in cur.fetchall()]
+
+    close_conn(conn, cur)
+
+    suggestions = []
+    if total == 0:
+        suggestions.append("暂无足够数据，建议加强景区宣传引导游客使用AI导游服务")
+    else:
+        neg_rate = neg / total * 100
+        if neg_rate > 20:
+            suggestions.append(f"负面评价占比{neg_rate:.0f}%，建议优化回答质量，补充知识库内容")
+        elif neg_rate > 10:
+            suggestions.append(f"负面评价占比{neg_rate:.0f}%，建议关注游客不满意的问题并改进")
+        else:
+            suggestions.append(f"负面评价仅{neg_rate:.0f}%，服务质量良好，继续保持")
+
+        if top_qs:
+            suggestions.append(f"游客最关心的问题：{top_qs[0]['user_input']}（{top_qs[0]['freq']}次），建议完善相关知识")
+
+        if total < 10:
+            suggestions.append("对话量较少，建议在景区入口增设AI导游使用引导")
+        elif total > 50:
+            suggestions.append("对话量充足，可考虑增加多语言支持服务境外游客")
+
+    return suggestions
 
 # ====================== 测试入口 ======================
 if __name__ == "__main__":

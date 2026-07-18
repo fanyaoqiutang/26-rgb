@@ -21,6 +21,10 @@ body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
 .stat-card { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
 .stat-card .num { font-size: 32px; font-weight: bold; color: #667eea; }
 .stat-card .label { color: #888; font-size: 13px; margin-top: 5px; }
+.stat-card.today { border-left: 4px solid #4facfe; }
+.stat-card.week { border-left: 4px solid #43e97b; }
+.stat-card.satisfaction { border-left: 4px solid #f093fb; }
+.stat-card.hot { border-left: 4px solid #fa709a; }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
 th { background: #fafafa; color: #666; }
@@ -38,34 +42,59 @@ textarea { height: 100px; resize: vertical; }
 .emotion-neu { background: #f4f4f5; color: #909399; }
 .emotion-neg { background: #fef0f0; color: #f56c6c; }
 .chart-bar { height: 20px; background: #667eea; border-radius: 4px; margin-top: 5px; transition: width 0.5s; }
+.trend-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.trend-date { font-size: 12px; color: #888; width: 80px; }
+.trend-bar-wrap { flex: 1; background: #f5f5f5; border-radius: 4px; height: 24px; overflow: hidden; }
+.trend-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.6s; display: flex; align-items: center; padding-left: 8px; color: #fff; font-size: 12px; }
+.satisfaction-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.sat-date { font-size: 12px; color: #888; width: 80px; }
+.sat-bar-wrap { flex: 1; background: #f5f5f5; border-radius: 12px; height: 20px; overflow: hidden; }
+.sat-bar { height: 100%; background: linear-gradient(90deg, #43e97b, #38f9d7); border-radius: 12px; transition: width 0.6s; }
+.sat-label { font-size: 12px; color: #67c23a; width: 50px; text-align: right; }
+.hot-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+.hot-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; margin-right: 12px; }
+.rank-1 { background: #fa709a; }
+.rank-2 { background: #f093fb; }
+.rank-3 { background: #667eea; }
+.rank-n { background: #ddd; color: #666; }
+.hot-text { flex: 1; font-size: 14px; color: #333; }
+.hot-freq { font-size: 13px; color: #999; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 </style>
 </head>
 <body>
 <div class="header">
   <h1>🏔️ 灵山景区 · 管理后台</h1>
-  <div class="nav">
-    <button class="active" onclick="showPanel('dashboard')">数据大屏</button>
-    <button onclick="showPanel('knowledge')">知识库</button>
-    <button onclick="showPanel('character')">数字人</button>
-    <button onclick="showPanel('report')">分析报告</button>
+  <div style="display:flex;align-items:center;gap:15px">
+    <div class="nav">
+      <button class="active" onclick="showPanel('dashboard')">数据大屏</button>
+      <button onclick="showPanel('knowledge')">知识库</button>
+      <button onclick="showPanel('character')">数字人</button>
+      <button onclick="showPanel('report')">分析报告</button>
+    </div>
+    <button onclick="doLogout()" style="padding:8px 16px;border:1px solid #fff;border-radius:6px;background:transparent;color:#fff;cursor:pointer;font-size:13px">退出登录</button>
   </div>
 </div>
 <div class="content">
 
-  <!-- 数据大屏 -->
   <div id="dashboard" class="panel active">
     <div class="stats-grid" id="statsGrid"></div>
-    <div class="card">
-      <h3> 近7日对话趋势</h3>
-      <div id="weeklyChart"></div>
+    <div class="grid-2">
+      <div class="card">
+        <h3>📊 近7日对话趋势</h3>
+        <div id="weeklyChart"></div>
+      </div>
+      <div class="card">
+        <h3>😊 游客满意度趋势</h3>
+        <div id="satisfactionChart"></div>
+      </div>
     </div>
     <div class="card">
       <h3>🔥 今日热门问答 TOP5</h3>
-      <table id="hotTable"><thead><tr><th>问题</th><th>频次</th></tr></thead><tbody></tbody></table>
+      <div id="hotList"></div>
     </div>
   </div>
 
-  <!-- 知识库 -->
   <div id="knowledge" class="panel">
     <div class="card">
       <h3>➕ 新增知识</h3>
@@ -76,12 +105,11 @@ textarea { height: 100px; resize: vertical; }
       <button class="btn btn-primary" onclick="addKnowledge()">添加</button>
     </div>
     <div class="card">
-      <h3>📚 知识库列表</h3>
+      <h3> 知识库列表</h3>
       <table id="kbTable"><thead><tr><th>ID</th><th>标题</th><th>分类</th><th>时间</th><th>操作</th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 
-  <!-- 数字人配置 -->
   <div id="character" class="panel">
     <div class="card">
       <h3> 数字人形象配置</h3>
@@ -89,15 +117,26 @@ textarea { height: 100px; resize: vertical; }
     </div>
   </div>
 
-  <!-- 分析报告 -->
   <div id="report" class="panel">
     <div class="card">
-      <h3>😊 游客情感分布（近7天）</h3>
+      <h3> 游客关注点分析（近7天）</h3>
+      <div id="focusChart"></div>
+    </div>
+    <div class="card">
+      <h3> 情感趋势报告（近7天）</h3>
+      <div id="emotionTrendChart"></div>
+    </div>
+    <div class="card">
+      <h3> 情感分布</h3>
       <div class="emotion-bar" id="emotionBar"></div>
     </div>
     <div class="card">
       <h3> 高频问题 TOP10</h3>
       <table id="hotQTable"><thead><tr><th>问题</th><th>出现次数</th></tr></thead><tbody></tbody></table>
+    </div>
+    <div class="card">
+      <h3> 服务建议</h3>
+      <div id="suggestionsList"></div>
     </div>
   </div>
 </div>
@@ -117,19 +156,42 @@ function showPanel(id) {
 async function loadDashboard() {
   const res = await fetch('/api/admin/stat/dashboard');
   const d = (await res.json()).data;
+  const posToday = d.today_emotion?.find(e=>e.emotion_tag==='正面')?.count||0;
+  const totalToday = d.today_emotion?.reduce((s,e)=>s+e.count,0)||0;
+  const satRate = totalToday > 0 ? Math.round(posToday/totalToday*100) : 0;
+
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card"><div class="num">${d.total_chats||0}</div><div class="label">累计对话</div></div>
-    <div class="stat-card"><div class="num">${d.total_users||0}</div><div class="label">服务人次</div></div>
-    <div class="stat-card"><div class="num">${d.today_emotion?.find(e=>e.emotion_tag==='正面')?.count||0}</div><div class="label">今日正面</div></div>
-    <div class="stat-card"><div class="num">${d.today_hot_questions?.length||0}</div><div class="label">今日问题数</div></div>`;
+    <div class="stat-card today"><div class="num">${d.today_chats||0}</div><div class="label">今日对话</div></div>
+    <div class="stat-card week"><div class="num">${d.week_chats||0}</div><div class="label">本周对话</div></div>
+    <div class="stat-card satisfaction"><div class="num">${satRate}%</div><div class="label">今日满意度</div></div>
+    <div class="stat-card hot"><div class="num">${d.total_chats||0}</div><div class="label">累计服务</div></div>`;
+
   let chartHtml = '';
-  const maxC = Math.max(...d.weekly_trend.map(x=>x.chat_count), 1);
-  d.weekly_trend.reverse().forEach(x => {
-    chartHtml += `<div style="margin-bottom:8px"><span style="font-size:12px;color:#888">${x.visit_date}</span><div class="chart-bar" style="width:${x.chat_count/maxC*100}%"></div><span style="font-size:12px">${x.chat_count}次</span></div>`;
+  const trend = [...d.weekly_trend].reverse();
+  const maxC = Math.max(...trend.map(x=>x.chat_count), 1);
+  trend.forEach(x => {
+    const pct = x.chat_count/maxC*100;
+    chartHtml += `<div class="trend-row"><span class="trend-date">${x.visit_date}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%">${x.chat_count}次</div></div></div>`;
   });
-  document.getElementById('weeklyChart').innerHTML = chartHtml;
-  const hotBody = document.querySelector('#hotTable tbody');
-  hotBody.innerHTML = d.today_hot_questions.map(x => `<tr><td>${x.user_input}</td><td>${x.freq}</td></tr>`).join('');
+  document.getElementById('weeklyChart').innerHTML = chartHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
+
+  let satHtml = '';
+  const satData = d.satisfaction_trend||[];
+  satData.reverse().forEach(x => {
+    satHtml += `<div class="satisfaction-row"><span class="sat-date">${x.visit_date}</span><div class="sat-bar-wrap"><div class="sat-bar" style="width:${x.satisfaction_rate}%"></div></div><span class="sat-label">${x.satisfaction_rate}%</span></div>`;
+  });
+  document.getElementById('satisfactionChart').innerHTML = satHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
+
+  const hotBody = document.getElementById('hotList');
+  const hotQs = d.today_hot_questions||[];
+  if(hotQs.length === 0) {
+    hotBody.innerHTML = '<p style="color:#999;text-align:center;padding:20px">今日暂无问答记录</p>';
+  } else {
+    hotBody.innerHTML = hotQs.map((x, i) => {
+      const rankClass = i < 3 ? `rank-${i+1}` : 'rank-n';
+      return `<div class="hot-item"><span class="hot-rank ${rankClass}">${i+1}</span><span class="hot-text">${x.user_input}</span><span class="hot-freq">${x.freq}次</span></div>`;
+    }).join('');
+  }
 }
 
 async function loadKnowledge() {
@@ -173,22 +235,64 @@ async function saveDH() {
 }
 
 async function loadReport() {
-  const [eRes, hRes] = await Promise.all([
+  const [eRes, hRes, fRes, tRes, sRes] = await Promise.all([
     fetch('/api/admin/stat/emotion?days=7'),
-    fetch('/api/admin/stat/hot_questions?days=7&top=10')
+    fetch('/api/admin/stat/hot_questions?days=7&top=10'),
+    fetch('/api/admin/stat/focus?days=7'),
+    fetch('/api/admin/stat/emotion_trend?days=7'),
+    fetch('/api/admin/stat/suggestions?days=7')
   ]);
   const emotions = (await eRes.json()).data;
   const hotQs = (await hRes.json()).data;
+  const focuses = (await fRes.json()).data;
+  const emotionTrend = (await tRes.json()).data;
+  const suggestions = (await sRes.json()).data;
+
   const pos = emotions.find(e=>e.emotion_tag==='正面')?.count||0;
   const neu = emotions.find(e=>e.emotion_tag==='中性')?.count||0;
   const neg = emotions.find(e=>e.emotion_tag==='负面')?.count||0;
   const total = pos+neu+neg||1;
+
+  let focusHtml = '';
+  const maxF = Math.max(...focuses.map(x=>x.count), 1);
+  const colors = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#f6d365','#a18cd1','#ddd'];
+  focuses.forEach((x, i) => {
+    focusHtml += `<div class="trend-row"><span class="trend-date" style="width:100px">${x.focus}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${x.count/maxF*100}%;background:${colors[i%colors.length]}">${x.count}次 ${x.percent}%</div></div></div>`;
+  });
+  document.getElementById('focusChart').innerHTML = focusHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
+
+  let trendHtml = '';
+  emotionTrend.forEach(x => {
+    const pPct = x.total > 0 ? Math.round(x.positive/x.total*100) : 0;
+    const nPct = x.total > 0 ? Math.round(x.negative/x.total*100) : 0;
+    trendHtml += `<div style="margin-bottom:12px"><span style="font-size:12px;color:#888">${x.visit_date}</span>
+      <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+        <span style="font-size:11px;color:#67c23a;width:35px">正面${pPct}%</span>
+        <div style="flex:1;background:#f0f9eb;border-radius:4px;height:16px;overflow:hidden"><div style="width:${pPct}%;height:100%;background:#67c23a;border-radius:4px"></div></div>
+        <span style="font-size:11px;color:#f56c6c;width:35px">负面${nPct}%</span>
+        <div style="flex:1;background:#fef0f0;border-radius:4px;height:16px;overflow:hidden"><div style="width:${nPct}%;height:100%;background:#f56c6c;border-radius:4px"></div></div>
+      </div></div>`;
+  });
+  document.getElementById('emotionTrendChart').innerHTML = trendHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
+
   document.getElementById('emotionBar').innerHTML = `
     <div class="emotion-item emotion-pos"><div style="font-size:24px">${pos}</div><div>正面 ${Math.round(pos/total*100)}%</div></div>
     <div class="emotion-item emotion-neu"><div style="font-size:24px">${neu}</div><div>中性 ${Math.round(neu/total*100)}%</div></div>
     <div class="emotion-item emotion-neg"><div style="font-size:24px">${neg}</div><div>负面 ${Math.round(neg/total*100)}%</div></div>`;
+
   document.querySelector('#hotQTable tbody').innerHTML = hotQs.map(x =>
     `<tr><td>${x.user_input}</td><td>${x.freq}</td></tr>`).join('');
+
+  let sugHtml = '';
+  suggestions.forEach(s => {
+    sugHtml += `<div style="padding:12px;margin-bottom:8px;background:#f8f9fa;border-radius:8px;border-left:4px solid #667eea;font-size:14px;color:#333">${s}</div>`;
+  });
+  document.getElementById('suggestionsList').innerHTML = sugHtml || '<p style="color:#999">暂无建议</p>';
+}
+
+async function doLogout() {
+  await fetch('/api/admin/logout', {method:'POST'});
+  window.location.href = '/';
 }
 
 loadDashboard();
