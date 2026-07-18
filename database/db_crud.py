@@ -84,6 +84,16 @@ def get_all_chat_records():
     close_conn(conn, cur)
     return res
 
+def update_last_record_emotion(emotion_tag: str):
+    """更新最近一条对话记录的情感标签（游客真实反馈）"""
+    conn, cur = get_conn()
+    cur.execute("SELECT id FROM chat_record ORDER BY id DESC LIMIT 1")
+    row = cur.fetchone()
+    if row:
+        cur.execute("UPDATE chat_record SET emotion_tag=%s WHERE id=%s", (emotion_tag, row[0]))
+        conn.commit()
+    close_conn(conn, cur)
+
 # ====================== 4. 每日访问统计 daily_visit_stat 相关 ======================
 def incr_daily_chat_count(visit_date: date):
     """当日对话次数 +1，不存在则新建一条记录"""

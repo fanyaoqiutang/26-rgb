@@ -6,63 +6,151 @@
 <title>灵山景区AI导游</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; }
-.admin-entry { position: fixed; top: 15px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: #fff; border-radius: 20px; text-decoration: none; font-size: 13px; backdrop-filter: blur(5px); transition: background 0.3s; }
+body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+.admin-entry { position: fixed; top: 15px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: #fff; border-radius: 20px; text-decoration: none; font-size: 13px; backdrop-filter: blur(5px); transition: background 0.3s; z-index: 10; }
 .admin-entry:hover { background: rgba(255,255,255,0.4); }
-.container { width: 420px; background: rgba(255,255,255,0.95); border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-h1 { text-align: center; color: #333; margin-bottom: 20px; font-size: 22px; }
-.character-img { width: 120px; display: block; margin: 0 auto 20px; animation: float 3s ease-in-out infinite; }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-.tag-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; justify-content: center; }
-.tag-btn { padding: 6px 14px; border: 2px solid #667eea; border-radius: 20px; background: #fff; color: #667eea; cursor: pointer; font-size: 13px; transition: all 0.3s; }
+.main-layout { display: flex; width: 1100px; height: 700px; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+
+/* 左侧景区导航 */
+.sidebar { width: 320px; background: #f8f9fa; border-right: 1px solid #eee; display: flex; flex-direction: column; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid #eee; }
+.sidebar-header h2 { font-size: 18px; color: #333; margin-bottom: 12px; }
+.search-box { position: relative; }
+.search-box input { width: 100%; padding: 10px 14px 10px 36px; border: 2px solid #eee; border-radius: 10px; font-size: 13px; outline: none; }
+.search-box input:focus { border-color: #667eea; }
+.search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+.scenic-list { flex: 1; overflow-y: auto; padding: 10px; }
+.scenic-group { margin-bottom: 10px; }
+.scenic-group-title { padding: 8px 12px; font-size: 13px; color: #667eea; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.scenic-group-title:hover { background: #eef; border-radius: 8px; }
+.spot-list { display: none; padding-left: 20px; }
+.spot-list.show { display: block; }
+.spot-item { padding: 8px 12px; font-size: 13px; color: #555; cursor: pointer; border-radius: 8px; margin: 2px 0; transition: all 0.2s; }
+.spot-item:hover { background: #667eea; color: #fff; }
+.spot-item.active { background: #667eea; color: #fff; }
+
+/* 右侧聊天区 */
+.chat-area { flex: 1; display: flex; flex-direction: column; }
+.chat-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; }
+.chat-header img { width: 40px; height: 40px; border-radius: 50%; }
+.chat-header-info h3 { font-size: 15px; color: #333; }
+.chat-header-info p { font-size: 12px; color: #999; }
+.tag-selector { display: flex; gap: 6px; padding: 10px 20px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+.tag-btn { padding: 4px 12px; border: 1.5px solid #667eea; border-radius: 15px; background: #fff; color: #667eea; cursor: pointer; font-size: 12px; transition: all 0.3s; }
 .tag-btn.active { background: #667eea; color: #fff; }
-.chat-box { height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 12px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
-.msg { margin-bottom: 10px; padding: 10px 14px; border-radius: 12px; max-width: 85%; font-size: 14px; line-height: 1.5; }
+.chat-box { flex: 1; overflow-y: auto; padding: 20px; background: #fafafa; }
+.msg { margin-bottom: 12px; padding: 12px 16px; border-radius: 14px; max-width: 80%; font-size: 14px; line-height: 1.6; }
 .msg-user { background: #667eea; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
-.msg-ai { background: #fff; color: #333; border: 1px solid #eee; border-bottom-left-radius: 4px; }
-.input-area { display: flex; gap: 8px; align-items: center; }
+.msg-ai { background: #fff; color: #333; border: 1px solid #eee; border-bottom-left-radius: 4px; position: relative; }
+.msg-feedback { display: flex; gap: 8px; margin-top: 8px; }
+.feedback-btn { padding: 4px 12px; border: 1px solid #ddd; border-radius: 12px; background: #fff; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+.feedback-btn:hover { background: #667eea; color: #fff; border-color: #667eea; }
+.feedback-btn.done { background: #67c23a; color: #fff; border-color: #67c23a; cursor: default; }
+.input-area { display: flex; gap: 8px; padding: 15px 20px; border-top: 1px solid #eee; align-items: center; }
 .input-area input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 14px; outline: none; }
 .input-area input:focus { border-color: #667eea; }
 .input-area button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; color: #fff; transition: opacity 0.3s; }
 .btn-send { background: #667eea; }
 .btn-voice { background: #f093fb; position: relative; user-select: none; }
-.btn-voice.recording { background: #e74c3c; animation: pulse 0.8s infinite; }
-@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
-.btn-recommend { background: #4facfe; width: 100%; margin-top: 8px; padding: 10px; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-size: 14px; }
+.btn-voice.recording { background: #e74c3c; }
+.btn-recommend { background: #4facfe; margin: 0 20px 15px; padding: 10px; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-size: 13px; }
 .btn-send:hover, .btn-voice:hover, .btn-recommend:hover { opacity: 0.85; }
 .audio-player { margin-top: 8px; }
 .audio-player audio { width: 100%; height: 32px; }
 .loading { text-align: center; color: #999; font-size: 13px; padding: 10px; }
-.recording-tip { position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 12px; white-space: nowrap; display: none; }
-.btn-voice.recording .recording-tip { display: block; }
+.waveform { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); display: none; align-items: flex-end; gap: 3px; height: 30px; }
+.btn-voice.recording .waveform { display: flex; }
+.wave-bar { width: 4px; background: #fff; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
+.wave-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; height: 15px; }
+.wave-bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+.wave-bar:nth-child(5) { animation-delay: 0.4s; height: 12px; }
+@keyframes wave { 0%,100%{transform:scaleY(0.5)} 50%{transform:scaleY(1.5)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+.character-img { width: 40px; height: 40px; border-radius: 50%; animation: float 3s ease-in-out infinite; }
 </style>
 </head>
 <body>
 <a href="/admin_login" class="admin-entry">管理员登录</a>
-<div class="container">
-  <h1>️ 灵山景区AI导游</h1>
-  <img src="/static/picture.png" class="character-img" alt="数字人">
-  <div class="tag-selector">
-    <span class="tag-btn active" data-tag="通用游客">通用</span>
-    <span class="tag-btn" data-tag="历史爱好者">历史</span>
-    <span class="tag-btn" data-tag="自然风光爱好者">自然</span>
-    <span class="tag-btn" data-tag="文化探索者">文化</span>
-    <span class="tag-btn" data-tag="亲子游客">亲子</span>
+<div class="main-layout">
+
+  <!-- 左侧景区导航 -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>🏔️ 灵山景区导览</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="搜索景区、景点..." oninput="filterScenic()">
+      </div>
+    </div>
+    <div class="scenic-list" id="scenicList"></div>
   </div>
-  <div class="chat-box" id="chatBox"></div>
-  <div class="input-area">
-    <input type="text" id="userInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendText()">
-    <button class="btn-send" onclick="sendText()">发送</button>
-    <button class="btn-voice" id="voiceBtn">
-      🎤
-      <span class="recording-tip">松开结束录音</span>
-    </button>
+
+  <!-- 右侧聊天区 -->
+  <div class="chat-area">
+    <div class="chat-header">
+      <img src="/static/picture.png" class="character-img" alt="数字人">
+      <div class="chat-header-info">
+        <h3>AI智能导游</h3>
+        <p id="currentSpot">欢迎来到灵山景区</p>
+      </div>
+    </div>
+    <div class="tag-selector">
+      <span class="tag-btn active" data-tag="通用游客">通用</span>
+      <span class="tag-btn" data-tag="历史爱好者">历史</span>
+      <span class="tag-btn" data-tag="自然风光爱好者">自然</span>
+      <span class="tag-btn" data-tag="文化探索者">文化</span>
+      <span class="tag-btn" data-tag="亲子游客">亲子</span>
+    </div>
+    <div class="chat-box" id="chatBox"></div>
+    <button class="btn-recommend" onclick="getRecommend()">🗺️ 个性化路线推荐</button>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendText()">
+      <button class="btn-send" onclick="sendText()">发送</button>
+      <button class="btn-voice" id="voiceBtn">
+        <div class="waveform">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+
+      </button>
+    </div>
   </div>
-  <button class="btn-recommend" onclick="getRecommend()">🗺️ 个性化路线推荐</button>
 </div>
 
 <script>
+const scenicData = [
+  {
+    name: '灵山胜境',
+    spots: [
+      { name: '灵山大佛', desc: '灵山标志性景点，高88米青铜释迦牟尼立像' },
+      { name: '梵宫', desc: '佛教艺术殿堂，融合建筑、雕塑、壁画于一体' },
+      { name: '九龙灌浴', desc: '大型动态音乐群雕，再现佛陀诞生场景' },
+      { name: '祥符禅寺', desc: '千年古刹，灵山佛教文化发源地' },
+      { name: '五印坛城', desc: '藏式文化景观，展现藏传佛教艺术精髓' }
+    ]
+  },
+  {
+    name: '拈花湾',
+    spots: [
+      { name: '香月花街', desc: '唐风宋韵商业街，体验禅意生活' },
+      { name: '拈花塔', desc: '拈花湾地标建筑，夜景尤为壮观' },
+      { name: '微笑广场', desc: '大型灯光水秀表演场地' },
+      { name: '鹿鸣谷', desc: '生态休闲区，亲近自然的好去处' }
+    ]
+  },
+  {
+    name: '其他景点',
+    spots: [
+      { name: '禅意小镇', desc: '体验禅修文化的特色街区' },
+      { name: '灵山植物园', desc: '收集各类珍稀植物的生态园区' },
+      { name: '太湖风光带', desc: '欣赏太湖美景的观景区域' }
+    ]
+  }
+];
+
 let currentTag = '通用游客';
+let currentSpotName = '';
+
 document.querySelectorAll('.tag-btn').forEach(btn => {
   btn.onclick = () => {
     document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
@@ -71,13 +159,78 @@ document.querySelectorAll('.tag-btn').forEach(btn => {
   };
 });
 
+function renderScenicList(data) {
+  const list = document.getElementById('scenicList');
+  list.innerHTML = data.map((group, gi) => `
+    <div class="scenic-group">
+      <div class="scenic-group-title" onclick="toggleGroup(${gi})">📁 ${group.name}</div>
+      <div class="spot-list" id="group-${gi}">
+        ${group.spots.map((spot, si) => `
+          <div class="spot-item" onclick="selectSpot('${group.name}', '${spot.name}', '${spot.desc}', this)">${spot.name}</div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleGroup(idx) {
+  const el = document.getElementById(`group-${idx}`);
+  el.classList.toggle('show');
+}
+
+function filterScenic() {
+  const keyword = document.getElementById('searchInput').value.toLowerCase();
+  if (!keyword) { renderScenicList(scenicData); return; }
+  const filtered = scenicData.map(g => ({
+    ...g,
+    spots: g.spots.filter(s => s.name.toLowerCase().includes(keyword) || s.desc.toLowerCase().includes(keyword))
+  })).filter(g => g.spots.length > 0);
+  renderScenicList(filtered);
+  filtered.forEach((_, i) => { const el = document.getElementById(`group-${i}`); if(el) el.classList.add('show'); });
+}
+
+function selectSpot(scenicName, spotName, spotDesc, el) {
+  document.querySelectorAll('.spot-item').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  currentSpotName = spotName;
+  document.getElementById('currentSpot').textContent = `当前：${scenicName} · ${spotName}`;
+  addMsg(` 正在游览：${spotName}`, 'scenic');
+  showLoading();
+  const q = `请为我详细介绍${spotName}，${spotDesc}。包括历史背景、特色亮点和游览建议。`;
+  fetch('/api/tourist/text_chat', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({question: q, tag: currentTag})
+  }).then(res => res.json()).then(data => {
+    hideLoading();
+    if (data.code === 200) {
+      addMsg(data.data.answer, 'ai');
+      addAudio(data.data.audio_url);
+    } else { addMsg('出错了：' + data.msg, 'ai'); }
+  }).catch(() => { hideLoading(); addMsg('网络错误', 'ai'); });
+}
+
 function addMsg(text, type) {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
-  div.className = 'msg ' + (type === 'user' ? 'msg-user' : 'msg-ai');
+  div.className = 'msg msg-' + type;
   div.textContent = text;
   box.appendChild(div);
+  if (type === 'ai') {
+    const fb = document.createElement('div');
+    fb.className = 'msg-feedback';
+    fb.innerHTML = `<button class="feedback-btn" onclick="sendFeedback(this,'正面')">👍 满意</button><button class="feedback-btn" onclick="sendFeedback(this,'中性')">😐 一般</button><button class="feedback-btn" onclick="sendFeedback(this,'负面')">👎 不满意</button>`;
+    box.appendChild(fb);
+  }
   box.scrollTop = box.scrollHeight;
+}
+
+async function sendFeedback(btn, emotion) {
+  if (btn.parentElement.querySelector('.done')) return;
+  btn.parentElement.querySelectorAll('.feedback-btn').forEach(b => b.classList.add('done'));
+  await fetch('/api/tourist/feedback', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({emotion})
+  });
 }
 
 function addAudio(url) {
@@ -93,7 +246,7 @@ function addAudio(url) {
 function showLoading() {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
-  div.className = 'loading'; div.id = 'loadingMsg'; div.textContent = '导游思考中...';
+  div.className = 'loading'; div.id = 'loadingMsg'; div.textContent = '导游讲解中...';
   box.appendChild(div); box.scrollTop = box.scrollHeight;
 }
 function hideLoading() { const el = document.getElementById('loadingMsg'); if(el) el.remove(); }
@@ -102,19 +255,18 @@ async function sendText() {
   const input = document.getElementById('userInput');
   const q = input.value.trim();
   if (!q) return;
+  const finalQ = currentSpotName ? `我在${currentSpotName}，${q}` : q;
   addMsg(q, 'user'); input.value = '';
   showLoading();
   try {
     const res = await fetch('/api/tourist/text_chat', {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({question: q, tag: currentTag})
+      body: JSON.stringify({question: finalQ, tag: currentTag})
     });
     const data = await res.json();
     hideLoading();
-    if (data.code === 200) {
-      addMsg(data.data.answer, 'ai');
-      addAudio(data.data.audio_url);
-    } else { addMsg('出错了：' + data.msg, 'ai'); }
+    if (data.code === 200) { addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
+    else { addMsg('出错了：' + data.msg, 'ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
 
@@ -132,7 +284,7 @@ async function sendAudioBlob(blob) {
       addMsg('识别：' + data.data.question, 'user');
       addMsg(data.data.answer, 'ai');
       addAudio(data.data.audio_url);
-    } else { addMsg('语音识别失败', 'ai'); }
+    } else { addMsg('语音识别失败：' + (data.msg || ''), 'ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
 
@@ -140,6 +292,7 @@ const voiceBtn = document.getElementById('voiceBtn');
 let mediaRecorder = null;
 let audioChunks = [];
 let recordStartTime = 0;
+let recognition = null;
 
 voiceBtn.addEventListener('mousedown', startRecord);
 voiceBtn.addEventListener('touchstart', startRecord);
@@ -156,28 +309,47 @@ async function startRecord(e) {
     mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) audioChunks.push(e.data); };
     mediaRecorder.onstop = () => {
       stream.getTracks().forEach(t => t.stop());
-      const duration = Date.now() - recordStartTime;
-      if (duration < 500) { addMsg('录音时间太短', 'ai'); return; }
-      const blob = new Blob(audioChunks, {type: 'audio/webm'});
-      if (blob.size > 0) sendAudioBlob(blob);
+      const input = document.getElementById('userInput');
+      const recognizedText = input.value.trim();
+      input.value = '';
+      if (recognizedText) { sendText(); } else { addMsg('未识别到文字', 'ai'); }
     };
     mediaRecorder.start();
     recordStartTime = Date.now();
     voiceBtn.classList.add('recording');
-  } catch(err) {
-    addMsg('无法访问麦克风，请检查权限', 'ai');
-  }
+    startRealtimeRecognition();
+  } catch(err) { addMsg('无法访问麦克风', 'ai'); }
 }
 
 function stopRecord() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
     voiceBtn.classList.remove('recording');
+    stopRealtimeRecognition();
   }
 }
 
+function startRealtimeRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onresult = (event) => {
+    let text = '';
+    for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;
+    document.getElementById('userInput').value = text;
+  };
+  recognition.start();
+}
+
+function stopRealtimeRecognition() {
+  if (recognition) { recognition.stop(); recognition = null; }
+}
+
 async function getRecommend() {
-  addMsg(`🗺️ 请为「${currentTag}」推荐路线`, 'user');
+  addMsg(`️ 请为「${currentTag}」推荐路线`, 'user');
   showLoading();
   try {
     const res = await fetch('/api/tourist/recommend', {
@@ -190,6 +362,9 @@ async function getRecommend() {
     else { addMsg('推荐失败', 'ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
+
+renderScenicList(scenicData);
+addMsg('欢迎来到灵山景区！点击左侧景点开始游览，或直接输入问题问我~', 'ai');
 </script>
 </body>
 </html>

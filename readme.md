@@ -50,7 +50,7 @@ admin_user、kb_document、chat_record、daily_visit_stat、digital_human_config
 https://gitee.com/chen_jian1994/awesome-digital-human-live2d/repository/archive/develop.zip
 解压后放入项目根目录
 
-系统前置依赖：FFmpeg（必须管理员终端执行）
+系统前置依赖：FFmpeg
 winget install Gyan.FFmpeg
 
 五、后端 Python 环境初始化

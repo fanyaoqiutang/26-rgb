@@ -86,6 +86,15 @@ def recommend():
     })
 
 
+@tourist_bp.route("/feedback", methods=["POST"])
+def feedback():
+    data = request.json
+    emotion = data.get("emotion", "中性")
+    from database.db_crud import update_last_record_emotion
+    update_last_record_emotion(emotion)
+    return jsonify({"code": 200, "msg": "感谢反馈"})
+
+
 def analyze_emotion(text: str) -> str:
     positive_words = ["欢迎", "美丽", "精彩", "推荐", "棒", "好", "赞", "喜欢", "开心"]
     negative_words = ["抱歉", "遗憾", "无法", "没有", "不足", "差"]
