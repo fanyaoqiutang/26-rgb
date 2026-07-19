@@ -18,19 +18,24 @@ def text_chat():
     if not question:
         return jsonify({"code": 400, "msg": "问题不能为空"})
 
-    know_text = search_relevant_context(question)
-    ans_text = get_guide_answer(question, user_tag)
-    audio_path = text_to_audio(ans_text)
-    emotion = analyze_emotion(ans_text)
-    add_interact_record(question, ans_text, emotion)
-    return jsonify({
-        "code": 200,
-        "data": {
-            "answer": ans_text,
-            "emotion": emotion,
-            "audio_url": audio_path,
-        }
-    })
+    try:
+        know_text = search_relevant_context(question)
+        ans_text = get_guide_answer(question, user_tag)
+        audio_path = text_to_audio(ans_text)
+        emotion = analyze_emotion(ans_text)
+        add_interact_record(question, ans_text, emotion)
+        return jsonify({
+            "code": 200,
+            "data": {
+                "answer": ans_text,
+                "emotion": emotion,
+                "audio_url": audio_path,
+            }
+        })
+    except Exception as e:
+        print(f"[text_chat] 异常: {e}")
+        import traceback; traceback.print_exc()
+        return jsonify({"code": 500, "msg": f"服务异常: {str(e)}"})
 
 
 @tourist_bp.route("/voice_chat", methods=["POST"])

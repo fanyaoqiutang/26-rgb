@@ -1070,14 +1070,12 @@ body {
     <div class="menu-item active" onclick="showPanel('dashboard', this)">
       <span class="icon"></span><span>数据大屏</span>
     </div>
-    <div class="menu-divider"></div>
     <div class="menu-item" onclick="showPanel('knowledge', this)">
-      <span class="icon">📚</span><span>知识库管理</span>
+      <span class="icon"></span><span>知识库管理</span>
     </div>
     <div class="menu-item" onclick="showPanel('character', this)">
-      <span class="icon">🤖</span><span>数字人配置</span>
+      <span class="icon"></span><span>数字人配置</span>
     </div>
-    <div class="menu-divider"></div>
     <div class="menu-item" onclick="showPanel('report', this)">
       <span class="icon"></span><span>分析报告</span>
     </div>
@@ -1103,16 +1101,16 @@ body {
       <div class="stats-grid" id="statsGrid"></div>
       <div class="grid-2">
         <div class="card">
-          <div class="card-title">📊 近7日对话趋势</div>
+          <div class="card-title">近7日对话趋势</div>
           <div id="weeklyChart"></div>
         </div>
         <div class="card">
-          <div class="card-title">😊 游客满意度趋势</div>
+          <div class="card-title">游客满意度趋势</div>
           <div id="satisfactionChart"></div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">🔥 今日热门问答 TOP5</div>
+        <div class="card-title">今日热门问答 TOP5</div>
         <div id="hotList"></div>
       </div>
     </div>
@@ -1142,10 +1140,10 @@ body {
     <!-- 数字人配置 -->
     <div id="character" class="panel">
       <div class="card">
-        <div class="card-title">🤖 数字人形象配置</div>
+        <div class="card-title">数字人形象配置</div>
         <div class="dh-layout">
           <div class="dh-preview">
-            <div class="dh-avatar-circle" id="dhAvatarPreview">🧑💼</div>
+            <div class="dh-avatar-circle" id="dhAvatarPreview"></div>
             <div style="font-size:14px;font-weight:600;color:var(--text-dark)" id="dhPreviewName">AI导游小灵</div>
             <div class="dh-preview-label">当前数字人</div>
           </div>
@@ -1158,23 +1156,23 @@ body {
     <div id="report" class="panel">
       <div class="report-grid">
         <div class="card">
-          <div class="card-title">🎯 游客关注点分析（近7天）</div>
+          <div class="card-title">游客关注点分析（近7天）</div>
           <div id="focusChart"></div>
         </div>
         <div class="card">
-          <div class="card-title">💬 情感分布</div>
+          <div class="card-title">情感分布</div>
           <div id="emotionBar"></div>
         </div>
         <div class="card report-full">
-          <div class="card-title">📈 情感趋势（近7天）</div>
+          <div class="card-title">情感趋势（近7天）</div>
           <div id="emotionTrendChart"></div>
         </div>
         <div class="card report-full">
-          <div class="card-title">❓ 高频问题 TOP10</div>
+          <div class="card-title">高频问题 TOP10</div>
           <div id="hotQList"></div>
         </div>
         <div class="card report-full">
-          <div class="card-title">💡 服务建议</div>
+          <div class="card-title">服务建议</div>
           <div id="suggestionsList"></div>
         </div>
       </div>
@@ -1184,12 +1182,12 @@ body {
 </div>
 
 <!-- 保存成功提示 -->
-<div class="save-toast" id="saveToast">✅ 保存成功</div>
+<div class="save-toast" id="saveToast">保存成功</div>
 
 <!-- 新增知识弹窗 -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
-    <h3>➕ 新增知识条目</h3>
+    <h3>新增知识条目</h3>
     <select id="kbTag">
       <option value="景点介绍">景点介绍</option>
       <option value="文化故事">文化故事</option>
@@ -1206,6 +1204,12 @@ body {
 
 <script>
 const pageTitles = { dashboard: '数据大屏', knowledge: '知识库管理', character: '数字人配置', report: '分析报告' };
+
+const weekDays = ['日','一','二','三','四','五','六'];
+const fmtDate = (ds) => {
+  const d = new Date(ds);
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 星期${weekDays[d.getDay()]}`;
+};
 
 function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -1237,24 +1241,24 @@ async function loadDashboard() {
   const satRate = totalToday > 0 ? Math.round(posToday / totalToday * 100) : 0;
 
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card c-blue"><div class="stat-icon">💬</div><div class="stat-num">${d.today_chats || 0}</div><div class="stat-label">今日对话</div></div>
-    <div class="stat-card c-green"><div class="stat-icon">📅</div><div class="stat-num">${d.week_chats || 0}</div><div class="stat-label">本周对话</div></div>
-    <div class="stat-card c-gold"><div class="stat-icon">⭐</div><div class="stat-num">${satRate}%</div><div class="stat-label">今日满意度</div></div>
-    <div class="stat-card c-purple"><div class="stat-icon">📊</div><div class="stat-num">${d.total_chats || 0}</div><div class="stat-label">累计服务</div></div>`;
+    <div class="stat-card c-blue"><div class="stat-icon"></div><div class="stat-num">${d.today_chats || 0}</div><div class="stat-label">今日对话</div></div>
+    <div class="stat-card c-green"><div class="stat-icon"></div><div class="stat-num">${d.week_chats || 0}</div><div class="stat-label">本周对话</div></div>
+    <div class="stat-card c-gold"><div class="stat-icon"></div><div class="stat-num">${satRate}%</div><div class="stat-label">今日满意度</div></div>
+    <div class="stat-card c-purple"><div class="stat-icon"></div><div class="stat-num">${d.total_chats || 0}</div><div class="stat-label">累计服务</div></div>`;
 
   let chartHtml = '';
   const trend = [...d.weekly_trend].reverse();
   const maxC = Math.max(...trend.map(x => x.chat_count), 1);
   trend.forEach(x => {
     const pct = x.chat_count / maxC * 100;
-    chartHtml += `<div class="trend-row"><span class="trend-date">${x.visit_date}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%">${x.chat_count}次</div></div></div>`;
+    chartHtml += `<div class="trend-row"><span class="trend-date">${fmtDate(x.visit_date)}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%">${x.chat_count}次</div></div></div>`;
   });
   document.getElementById('weeklyChart').innerHTML = chartHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
   let satHtml = '';
   const satData = d.satisfaction_trend || [];
   satData.reverse().forEach(x => {
-    satHtml += `<div class="satisfaction-row"><span class="sat-date">${x.visit_date}</span><div class="sat-bar-wrap"><div class="sat-bar" style="width:${x.satisfaction_rate}%"></div></div><span class="sat-label">${x.satisfaction_rate}%</span></div>`;
+    satHtml += `<div class="satisfaction-row"><span class="sat-date">${fmtDate(x.visit_date)}</span><div class="sat-bar-wrap"><div class="sat-bar" style="width:${x.satisfaction_rate}%"></div></div><span class="sat-label">${x.satisfaction_rate}%</span></div>`;
   });
   document.getElementById('satisfactionChart').innerHTML = satHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
@@ -1437,7 +1441,7 @@ async function loadReport() {
     const pPct = x.total > 0 ? Math.round(x.positive / x.total * 100) : 0;
     const nPct = x.total > 0 ? Math.round(x.negative / x.total * 100) : 0;
     trendHtml += `<div class="emotion-trend-row">
-      <div class="emotion-trend-date">${x.visit_date}</div>
+      <div class="emotion-trend-date">${fmtDate(x.visit_date)}</div>
       <div class="emotion-trend-bars">
         <span class="emotion-trend-label pos-label">正面 ${pPct}%</span>
         <div class="emotion-trend-track pos-track"><div class="emotion-trend-fill pos-fill" style="width:${pPct}%"></div></div>

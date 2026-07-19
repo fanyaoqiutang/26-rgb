@@ -106,15 +106,6 @@ body::before {
 .left-search input::placeholder { color: var(--text-dim); }
 .left-search input:focus { border-color: rgba(212, 168, 83, 0.3); background: rgba(255,255,255,0.07); }
 
-.left-search::before {
-  content: '🔍';
-  position: absolute;
-  left: calc(4% + 10px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 12px;
-}
-
 .left-list {
   flex: 1;
   overflow-y: auto;
@@ -179,8 +170,6 @@ body::before {
   background: var(--gold);
   box-shadow: 0 0 6px rgba(212, 168, 83, 0.5);
 }
-
-.left-spot-item .spot-icon { font-size: 15px; flex-shrink: 0; }
 
 .left-footer {
   padding: 12px 16px;
@@ -263,8 +252,9 @@ body::before {
 
 /* 对话气泡区 */
 .chat-zone {
-  flex: 0 0 auto;
-  max-height: 160px;
+  flex: 1 1 auto;
+  min-height: 200px;
+  max-height: none;
   padding: 12px 30px;
   overflow-y: auto;
   scroll-behavior: smooth;
@@ -404,11 +394,21 @@ body::before {
   margin-top: auto;
 }
 
+.tag-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
 .tag-btns {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: center;
+  align-items: center;
 }
 
 .tag-btn {
@@ -430,6 +430,14 @@ body::before {
   color: #fff;
   border-color: var(--gold);
   box-shadow: 0 0 12px rgba(212, 168, 83, 0.25);
+}
+
+.tag-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  text-align: center;
+  letter-spacing: 1px;
 }
 
 .input-row {
@@ -757,11 +765,10 @@ body::before {
     <!-- 顶部导航 -->
     <nav class="center-nav">
       <div class="center-nav-left">
-        <span class="nav-icon">📍</span>
         <span id="navSpotName">灵山胜境</span>
       </div>
       <div class="center-nav-right">
-        <span>AI导游小灵</span>
+        <span>数字人导游小灵</span>
         <div class="online-dot"></div>
         <a class="admin-link" href="/admin_login">管理员登录</a>
       </div>
@@ -773,6 +780,7 @@ body::before {
     <!-- 标签+输入组合区 -->
     <div class="input-zone">
       <div class="tag-btns">
+        <span class="tag-label">讲解风格</span>
         <span class="tag-btn active" data-tag="通用游客">通用</span>
         <span class="tag-btn" data-tag="历史爱好者">历史</span>
         <span class="tag-btn" data-tag="自然风光爱好者">自然</span>
@@ -785,7 +793,6 @@ body::before {
         </div>
         <button class="btn-send" onclick="sendText()">➤</button>
         <button class="btn-voice" id="voiceBtn">
-          🎤
           <div class="waveform">
             <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
           </div>
@@ -813,20 +820,20 @@ body::before {
 const scenicData = [
   { name: '灵山胜境', spots: [
     { name: '灵山大佛', desc: '高88米青铜释迦牟尼立像', icon: '' },
-    { name: '梵宫', desc: '佛教艺术殿堂', icon: '🏛️' },
-    { name: '九龙灌浴', desc: '大型动态音乐群雕', icon: '🐉' },
+    { name: '梵宫', desc: '佛教艺术殿堂', icon: '' },
+    { name: '九龙灌浴', desc: '大型动态音乐群雕', icon: '' },
     { name: '祥符禅寺', desc: '千年古刹', icon: '' },
-    { name: '五印坛城', desc: '藏式文化景观', icon: '🏯' }
+    { name: '五印坛城', desc: '藏式文化景观', icon: '' }
   ]},
-  { name: '拈花湾', spots: [
-    { name: '香月花街', desc: '唐风宋韵商业街', icon: '🌸' },
-    { name: '拈花塔', desc: '花湾地标建筑', icon: '🗼' },
-    { name: '微笑广场', desc: '灯光水秀表演', icon: '✨' },
+  { name: '花湾', spots: [
+    { name: '香月花街', desc: '唐风宋韵商业街', icon: '' },
+    { name: '拈花塔', desc: '花湾地标建筑', icon: '' },
+    { name: '微笑广场', desc: '灯光水秀表演', icon: '' },
     { name: '鹿鸣谷', desc: '生态休闲区', icon: '' }
   ]},
   { name: '其他景点', spots: [
-    { name: '禅意小镇', desc: '禅修文化街区', icon: '🏘️' },
-    { name: '灵山植物园', desc: '珍稀植物园区', icon: '🌿' },
+    { name: '禅意小镇', desc: '禅修文化街区', icon: '' },
+    { name: '灵山植物园', desc: '珍稀植物园区', icon: '' },
     { name: '太湖风光带', desc: '太湖观景区域', icon: '' }
   ]}
 ];
@@ -846,12 +853,11 @@ document.querySelectorAll('.tag-btn').forEach(btn => {
 function renderScenicList(data) {
   const list = document.getElementById('scenicList');
   list.innerHTML = data.map((group, gi) => `
-    <div class="left-group-title" onclick="toggleGroup(${gi})">📂 ${group.name}</div>
+    <div class="left-group-title" onclick="toggleGroup(${gi})">${group.name}</div>
     <div class="left-spots" id="group-${gi}">
       ${group.spots.map(spot => `
         <div class="left-spot-item" onclick="selectSpot('${group.name}','${spot.name}','${spot.desc}',this)">
           <div class="dot"></div>
-          <span class="spot-icon">${spot.icon || ''}</span>
           <span>${spot.name}</span>
         </div>
       `).join('')}
@@ -897,7 +903,7 @@ function addMsg(text, type) {
   const div = document.createElement('div');
   div.className = 'msg msg-' + type;
   if (type === 'ai' && text === box._welcomeText) {
-    div.innerHTML = '🙏 ' + text;
+    div.textContent = text;
   } else {
     div.textContent = text;
   }
