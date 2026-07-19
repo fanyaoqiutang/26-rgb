@@ -3,164 +3,837 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>灵山景区AI导游</title>
+<title>灵山胜境 · AI导游</title>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Microsoft YaHei', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-.admin-entry { position: fixed; top: 15px; right: 20px; padding: 8px 16px; background: rgba(255,255,255,0.2); color: #fff; border-radius: 20px; text-decoration: none; font-size: 13px; backdrop-filter: blur(5px); transition: background 0.3s; z-index: 10; }
-.admin-entry:hover { background: rgba(255,255,255,0.4); }
-.main-layout { display: flex; width: 1400px; height: 700px; background: rgba(255,255,255,0.95); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
 
-/* 左侧景区导航 */
-.sidebar { width: 280px; background: #f8f9fa; border-right: 1px solid #eee; display: flex; flex-direction: column; }
-.sidebar-header { padding: 20px; border-bottom: 1px solid #eee; }
-.sidebar-header h2 { font-size: 18px; color: #333; margin-bottom: 12px; }
-.search-box { position: relative; }
-.search-box input { width: 100%; padding: 10px 14px 10px 36px; border: 2px solid #eee; border-radius: 10px; font-size: 13px; outline: none; }
-.search-box input:focus { border-color: #667eea; }
-.search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
-.scenic-list { flex: 1; overflow-y: auto; padding: 10px; }
-.scenic-group { margin-bottom: 10px; }
-.scenic-group-title { padding: 8px 12px; font-size: 13px; color: #667eea; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-.scenic-group-title:hover { background: #eef; border-radius: 8px; }
-.spot-list { display: none; padding-left: 20px; }
-.spot-list.show { display: block; }
-.spot-item { padding: 8px 12px; font-size: 13px; color: #555; cursor: pointer; border-radius: 8px; margin: 2px 0; transition: all 0.2s; }
-.spot-item:hover { background: #667eea; color: #fff; }
-.spot-item.active { background: #667eea; color: #fff; }
+:root {
+  --gold: #d4a853;
+  --gold-light: #f0d78c;
+  --gold-dark: #b8860b;
+  --glass: rgba(10, 22, 40, 0.55);
+  --glass-border: rgba(212, 168, 83, 0.1);
+  --text: #f0ece2;
+  --text-dim: rgba(240, 236, 226, 0.45);
+}
 
-/* 中间聊天区 */
-.chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-.chat-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; }
-.chat-header img { width: 40px; height: 40px; border-radius: 50%; }
-.chat-header-info h3 { font-size: 15px; color: #333; }
-.chat-header-info p { font-size: 12px; color: #999; }
-.tag-selector { display: flex; gap: 6px; padding: 10px 20px; border-bottom: 1px solid #eee; flex-wrap: wrap; }
-.tag-btn { padding: 4px 12px; border: 1.5px solid #667eea; border-radius: 15px; background: #fff; color: #667eea; cursor: pointer; font-size: 12px; transition: all 0.3s; }
-.tag-btn.active { background: #667eea; color: #fff; }
-.chat-box { flex: 1; overflow-y: auto; padding: 20px; background: #fafafa; }
-.msg { margin-bottom: 12px; padding: 12px 16px; border-radius: 14px; max-width: 80%; font-size: 14px; line-height: 1.6; }
-.msg-user { background: #667eea; color: #fff; margin-left: auto; border-bottom-right-radius: 4px; }
-.msg-ai { background: #fff; color: #333; border: 1px solid #eee; border-bottom-left-radius: 4px; position: relative; }
-.msg-feedback { display: flex; gap: 8px; margin-top: 8px; }
-.feedback-btn { padding: 4px 12px; border: 1px solid #ddd; border-radius: 12px; background: #fff; cursor: pointer; font-size: 12px; transition: all 0.2s; }
-.feedback-btn:hover { background: #667eea; color: #fff; border-color: #667eea; }
-.feedback-btn.done { background: #67c23a; color: #fff; border-color: #67c23a; cursor: default; }
-.input-area { display: flex; gap: 8px; padding: 15px 20px; border-top: 1px solid #eee; align-items: center; }
-.input-area input { flex: 1; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 14px; outline: none; }
-.input-area input:focus { border-color: #667eea; }
-.input-area button { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 14px; color: #fff; transition: opacity 0.3s; }
-.btn-send { background: #667eea; }
-.btn-voice { background: #f093fb; position: relative; user-select: none; }
-.btn-voice.recording { background: #e74c3c; }
-.btn-recommend { background: #4facfe; margin: 0 20px 15px; padding: 10px; border: none; border-radius: 10px; color: #fff; cursor: pointer; font-size: 13px; }
-.btn-send:hover, .btn-voice:hover, .btn-recommend:hover { opacity: 0.85; }
-.audio-player { margin-top: 8px; }
-.audio-player audio { width: 100%; height: 32px; }
-.loading { text-align: center; color: #999; font-size: 13px; padding: 10px; }
-.waveform { position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); display: none; align-items: flex-end; gap: 3px; height: 30px; }
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+  background: linear-gradient(160deg, #070e1a 0%, #0a1f15 35%, #0d1520 65%, #120a20 100%);
+  color: var(--text);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 45%, rgba(212, 168, 83, 0.04) 0%, transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 900'%3E%3Cpath fill='rgba(13,43,30,0.12)' d='M0,700 Q200,620 400,680 T800,640 T1200,690 T1440,650 L1440,900 L0,900Z'/%3E%3Cpath fill='rgba(10,22,40,0.08)' d='M0,750 Q300,700 600,740 T1100,710 T1440,730 L1440,900 L0,900Z'/%3E%3Cpath fill='rgba(20,10,40,0.06)' d='M0,800 Q400,770 700,790 T1440,780 L1440,900 L0,900Z'/%3E%3C/svg%3E") no-repeat bottom center / cover;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ========== 三栏布局 ========== */
+.page-layout {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== 左栏：景点列表 280px ===== */
+.col-left {
+  width: 280px;
+  min-width: 280px;
+  background: var(--glass);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-right: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  animation: fadeSlideRight 0.7s ease-out;
+}
+
+.col-left-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.col-left-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.col-left-logo .logo-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  box-shadow: 0 0 12px rgba(212, 168, 83, 0.25);
+}
+
+.col-left-logo span {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 17px;
+  color: var(--gold-light);
+  letter-spacing: 2px;
+}
+
+.left-search { position: relative; }
+
+.left-search input {
+  width: 92%;
+  margin: 0 auto;
+  display: block;
+  padding: 9px 12px 9px 34px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+}
+
+.left-search input::placeholder { color: var(--text-dim); }
+.left-search input:focus { border-color: rgba(212, 168, 83, 0.3); background: rgba(255,255,255,0.07); }
+
+.left-search::before {
+  content: '🔍';
+  position: absolute;
+  left: calc(4% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+}
+
+.left-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+}
+
+.left-list::-webkit-scrollbar { width: 3px; }
+.left-list::-webkit-scrollbar-thumb { background: rgba(212, 168, 83, 0.2); border-radius: 3px; }
+
+.left-group-title {
+  padding: 12px 10px 6px;
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.left-group-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(212, 168, 83, 0.2), transparent);
+}
+
+.left-spots { display: none; padding-left: 6px; }
+.left-spots.show { display: block; }
+
+.left-spot-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 14px;
+  color: rgba(240, 236, 226, 0.75);
+}
+
+.left-spot-item:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+
+.left-spot-item.active {
+  color: var(--gold-light);
+  border-left-color: var(--gold);
+  background: rgba(212, 168, 83, 0.06);
+}
+
+.left-spot-item .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(240, 236, 226, 0.3);
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.left-spot-item.active .dot {
+  background: var(--gold);
+  box-shadow: 0 0 6px rgba(212, 168, 83, 0.5);
+}
+
+.left-spot-item .spot-icon { font-size: 15px; flex-shrink: 0; }
+
+.left-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--glass-border);
+  font-size: 11px;
+  color: var(--text-dim);
+  text-align: center;
+  opacity: 0.5;
+}
+
+/* ===== 中栏：对话区 ===== */
+.col-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+}
+
+/* 顶部导航 */
+.center-nav {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  background: rgba(10, 22, 40, 0.3);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(212, 168, 83, 0.06);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.center-nav-left {
+  font-size: 16px;
+  color: var(--text);
+  font-weight: 600;
+  text-shadow: 0 0 15px rgba(212, 168, 83, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.center-nav-left .nav-icon { font-size: 16px; }
+
+.center-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: rgba(240, 236, 226, 0.7);
+}
+
+.center-nav-right .online-dot {
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+}
+
+.center-nav-right .admin-link {
+  font-size: 13px;
+  color: rgba(212, 168, 83, 0.6);
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-left: 12px;
+  text-decoration: none;
+  padding: 4px 14px;
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  border-radius: 12px;
+}
+
+.center-nav-right .admin-link:hover {
+  color: var(--gold-light);
+  border-color: rgba(212, 168, 83, 0.4);
+  background: rgba(212, 168, 83, 0.08);
+}
+
+/* 对话气泡区 */
+.chat-zone {
+  flex: 0 0 auto;
+  max-height: 160px;
+  padding: 12px 30px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  position: relative;
+  z-index: 1;
+}
+
+.chat-zone::-webkit-scrollbar { width: 3px; }
+.chat-zone::-webkit-scrollbar-thumb { background: rgba(212, 168, 83, 0.15); border-radius: 3px; }
+
+.msg {
+  margin-bottom: 12px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  max-width: 75%;
+  font-size: 15px;
+  line-height: 1.7;
+  position: relative;
+  animation: msgPopIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* AI气泡：毛玻璃深色 */
+.msg-ai {
+  background: rgba(20, 22, 40, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  border: 1px solid rgba(212, 168, 83, 0.12);
+  border-bottom-left-radius: 5px;
+  margin-right: auto;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.12), 0 0 8px rgba(212, 168, 83, 0.04);
+}
+
+.msg-ai::after {
+  content: '';
+  position: absolute;
+  left: -9px; bottom: 16px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-right: 11px solid rgba(20, 22, 40, 0.6);
+}
+
+/* 用户气泡：金色渐变 */
+.msg-user {
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.9), rgba(232, 145, 58, 0.9));
+  color: #1a1a2e;
+  border-bottom-right-radius: 5px;
+  margin-left: auto;
+  font-weight: 500;
+  box-shadow: 0 2px 16px rgba(212, 168, 83, 0.15);
+  border: none;
+}
+
+.msg-user::after {
+  content: '';
+  position: absolute;
+  right: -9px; bottom: 16px;
+  border-top: 9px solid transparent;
+  border-bottom: 9px solid transparent;
+  border-left: 11px solid rgba(212, 168, 83, 0.9);
+}
+
+.msg-scenic {
+  background: rgba(212, 168, 83, 0.08);
+  border: 1px solid rgba(212, 168, 83, 0.15);
+  color: var(--gold-light);
+  max-width: 50%;
+  text-align: center;
+  margin: 6px auto;
+  font-size: 13px;
+  border-radius: 14px;
+}
+
+/* 满意度紧贴气泡 */
+.msg-feedback {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  margin-left: 8px;
+  margin-bottom: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.feedback-btn {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.25s;
+  display: flex; align-items: center; gap: 3px;
+}
+
+.feedback-btn:hover { background: rgba(212, 168, 83, 0.1); color: var(--gold-light); }
+.feedback-btn.selected { background: rgba(212, 168, 83, 0.15); color: var(--gold-light); }
+.feedback-btn.done { opacity: 0.3; cursor: default; }
+
+/* 音频播放器 */
+.audio-player {
+  margin-top: 4px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.04);
+  margin-left: 8px;
+  max-width: 75%;
+}
+
+.audio-controls { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-dim); }
+
+.audio-btn {
+  padding: 4px 12px;
+  border: 1px solid rgba(212, 168, 83, 0.2);
+  border-radius: 8px;
+  background: rgba(212, 168, 83, 0.06);
+  color: var(--gold-light);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.3s;
+}
+
+.audio-btn:hover { background: rgba(212, 168, 83, 0.15); }
+.audio-btn.stop { border-color: rgba(255,255,255,0.08); background: transparent; color: var(--text-dim); }
+
+/* 标签+输入组合区 - 推到底部 */
+.input-zone {
+  flex: 0 0 auto;
+  padding: 10px 30px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+}
+
+.tag-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.tag-btn {
+  padding: 6px 20px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.04);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+}
+
+.tag-btn:hover { background: rgba(212, 168, 83, 0.1); color: var(--gold-light); border-color: rgba(212, 168, 83, 0.25); }
+
+.tag-btn.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #fff;
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(212, 168, 83, 0.25);
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+}
+
+.input-wrap {
+  position: relative;
+  flex: 1;
+}
+
+.input-wrap input {
+  width: 100%;
+  padding: 13px 18px 13px 44px;
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 26px;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+}
+
+.input-wrap input::placeholder { color: var(--text-dim); }
+
+.input-wrap input:focus {
+  border-color: rgba(212, 168, 83, 0.4);
+  background: rgba(255,255,255,0.09);
+  box-shadow: 0 2px 20px rgba(212, 168, 83, 0.1), 0 0 0 3px rgba(212, 168, 83, 0.06);
+}
+
+.input-wrap::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20%; right: 20%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.input-wrap:has(input:focus)::after { opacity: 1; animation: glowFlow 2s ease-in-out infinite; }
+
+.input-wrap .mic-icon {
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.btn-send {
+  width: 48px; height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #fff;
+  font-size: 17px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(212, 168, 83, 0.25);
+  flex-shrink: 0;
+}
+
+.btn-send:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(212, 168, 83, 0.4); }
+.btn-send:active { transform: scale(0.95); }
+
+/* 语音录音按钮 */
+.btn-voice {
+  width: 46px; height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.btn-voice:hover { background: rgba(255,255,255,0.1); }
+
+.btn-voice.recording {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: rgba(231, 76, 60, 0.35);
+  animation: pulseRed 1s ease-in-out infinite;
+}
+
+.waveform {
+  position: absolute;
+  bottom: 110%; left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: flex-end; gap: 2px; height: 18px;
+}
+
 .btn-voice.recording .waveform { display: flex; }
-.wave-bar { width: 4px; background: #fff; border-radius: 2px; animation: wave 0.8s ease-in-out infinite; }
-.wave-bar:nth-child(1) { animation-delay: 0s; height: 10px; }
-.wave-bar:nth-child(2) { animation-delay: 0.1s; height: 20px; }
-.wave-bar:nth-child(3) { animation-delay: 0.2s; height: 15px; }
-.wave-bar:nth-child(4) { animation-delay: 0.3s; height: 25px; }
-.wave-bar:nth-child(5) { animation-delay: 0.4s; height: 12px; }
-@keyframes wave { 0%,100%{transform:scaleY(0.5)} 50%{transform:scaleY(1.5)} }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
-.character-img { width: 40px; height: 40px; border-radius: 50%; animation: float 3s ease-in-out infinite; }
 
-/* 右侧Live2D数字人区域 */
-.live2d-panel { width: 380px; border-left: 1px solid #eee; position: relative; background: linear-gradient(180deg, #e8f4f8 0%, #f0e6ff 100%); overflow: hidden; }
-.live2d-panel iframe { width: 100%; height: 100%; border: none; }
-.live2d-label { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(102,126,234,0.85); color: #fff; padding: 4px 16px; border-radius: 12px; font-size: 12px; pointer-events: none; z-index: 2; }
+.wave-bar {
+  width: 3px; background: var(--gold); border-radius: 2px;
+  animation: waveAnim 0.7s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0s; height: 6px; }
+.wave-bar:nth-child(2) { animation-delay: 0.1s; height: 12px; }
+.wave-bar:nth-child(3) { animation-delay: 0.2s; height: 8px; }
+.wave-bar:nth-child(4) { animation-delay: 0.15s; height: 14px; }
+.wave-bar:nth-child(5) { animation-delay: 0.05s; height: 6px; }
+
+/* 打字指示器 */
+.typing-dots { display: flex; gap: 5px; padding: 14px 20px; align-items: center; }
+.typing-dots .dot {
+  width: 7px; height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: typingBounce 1.3s ease-in-out infinite;
+}
+.typing-dots .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots .dot:nth-child(3) { animation-delay: 0.4s; }
+
+/* ===== 右栏：数字人面板 ===== */
+.col-right {
+  width: 580px;
+  min-width: 500px;
+  background: transparent;
+  border-left: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: fadeSlideLeft 0.7s ease-out;
+  overflow: hidden;
+}
+
+/* 舞台追光 */
+.col-right::before {
+  content: '';
+  position: absolute;
+  top: 10%; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(212, 168, 83, 0.1) 0%, transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+  animation: spotlightPulse 5s ease-in-out infinite;
+}
+
+/* 佛光光晕 */
+.dh-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 560px;
+  height: 560px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(212, 168, 83, 0.14) 0%,
+    rgba(212, 168, 83, 0.06) 30%,
+    rgba(212, 168, 83, 0.02) 50%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: haloBreath 3s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* 数字人容器：去掉外框，铺满右栏 */
+.dh-container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  z-index: 1;
+}
+
+.dh-container iframe { width: 100%; height: 100%; border: none; }
+
+/* 声波动画 */
+.dh-sound-wave {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  gap: 4px;
+  align-items: flex-end;
+  height: 24px;
+  z-index: 2;
+}
+
+.dh-sound-wave.active { display: flex; }
+
+.dh-sound-wave .sw-bar {
+  width: 3px;
+  background: var(--gold);
+  border-radius: 2px;
+  animation: swWave 0.6s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+.dh-sound-wave .sw-bar:nth-child(1) { animation-delay: 0s; height: 6px; }
+.dh-sound-wave .sw-bar:nth-child(2) { animation-delay: 0.1s; height: 12px; }
+.dh-sound-wave .sw-bar:nth-child(3) { animation-delay: 0.2s; height: 8px; }
+.dh-sound-wave .sw-bar:nth-child(4) { animation-delay: 0.15s; height: 16px; }
+.dh-sound-wave .sw-bar:nth-child(5) { animation-delay: 0.05s; height: 10px; }
+
+.dh-name-tag {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 22, 40, 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--gold-light);
+  padding: 6px 24px;
+  border-radius: 16px;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 3;
+  border: 1px solid rgba(212, 168, 83, 0.15);
+  white-space: nowrap;
+  letter-spacing: 2px;
+  text-shadow: 0 0 10px rgba(212, 168, 83, 0.2);
+}
+
+/* ========== 动画 ========== */
+@keyframes fadeSlideRight { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes fadeSlideLeft { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes dhFloatIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes msgPopIn { from { transform: translateY(6px) scale(0.97); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(1.4); } }
+@keyframes pulseRed { 0%,100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.25); } 50% { box-shadow: 0 0 0 8px rgba(231,76,60,0); } }
+@keyframes waveAnim { 0%,100% { transform: scaleY(0.5); } 50% { transform: scaleY(1.5); } }
+@keyframes typingBounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+@keyframes rotateGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes spotlightPulse { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+@keyframes swWave { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1.6); } }
+@keyframes glowFlow { 0% { left: 20%; right: 80%; } 50% { left: 40%; right: 40%; } 100% { left: 80%; right: 20%; } }
+@keyframes haloBreath { 0%,100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.06); opacity: 1; } }
+
+/* ========== 响应式 ========== */
+@media (max-width: 1500px) {
+  .col-right { width: 500px; min-width: 440px; }
+  .dh-halo { width: 480px; height: 480px; }
+}
+
+@media (max-width: 1300px) {
+  .col-right { width: 440px; min-width: 380px; }
+  .dh-halo { width: 420px; height: 420px; }
+}
+
+@media (max-width: 1100px) {
+  .col-right { width: 380px; min-width: 320px; }
+  .dh-halo { width: 360px; height: 360px; }
+  .chat-zone, .input-zone { padding-left: 24px; padding-right: 24px; }
+}
+
+@media (max-width: 900px) {
+  .page-layout { flex-direction: column; }
+  .col-left {
+    width: 100%; min-width: unset;
+    max-height: 140px;
+    border-right: none; border-bottom: 1px solid var(--glass-border);
+    flex-direction: row; overflow-x: auto;
+  }
+  .col-left-header { display: none; }
+  .left-list { display: flex; gap: 4px; padding: 8px; }
+  .left-group-title { display: none; }
+  .left-spots { display: flex !important; padding: 0; }
+  .left-spot-item { min-width: 120px; border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .left-spot-item.active { border-left-color: transparent; border-bottom-color: var(--gold); }
+  .left-footer { display: none; }
+  .col-right {
+    width: 100%; min-width: unset;
+    height: 250px; min-height: 200px;
+    border-left: none; border-top: 1px solid var(--glass-border);
+    order: -1;
+  }
+  .dh-container { width: 200px; height: 85%; }
+  .dh-halo { width: 240px; height: 240px; }
+  .col-center { flex: 1; }
+}
 </style>
 </head>
 <body>
-<a href="/admin_login" class="admin-entry">管理员登录</a>
-<div class="main-layout">
 
-  <!-- 左侧景区导航 -->
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <h2>🏔️ 灵山景区导览</h2>
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="搜索景区、景点..." oninput="filterScenic()">
+<div class="page-layout">
+
+  <!-- 左栏：景点列表 -->
+  <aside class="col-left">
+    <div class="col-left-header">
+      <div class="col-left-logo">
+        <div class="logo-dot">🏔️</div>
+        <span>景区导览</span>
+      </div>
+      <div class="left-search">
+        <input type="text" id="searchInput" placeholder="搜索景点..." oninput="filterScenic()">
       </div>
     </div>
-    <div class="scenic-list" id="scenicList"></div>
-  </div>
+    <div class="left-list" id="scenicList"></div>
+  </aside>
 
-  <!-- 中间聊天区 -->
-  <div class="chat-area">
-    <div class="chat-header">
-      <img src="/static/picture.png" class="character-img" alt="数字人">
-      <div class="chat-header-info">
-        <h3>AI智能导游</h3>
-        <p id="currentSpot">欢迎来到灵山景区</p>
+  <!-- 中栏：对话区 -->
+  <main class="col-center">
+
+    <!-- 顶部导航 -->
+    <nav class="center-nav">
+      <div class="center-nav-left">
+        <span class="nav-icon">📍</span>
+        <span id="navSpotName">灵山胜境</span>
       </div>
-    </div>
-    <div class="tag-selector">
-      <span class="tag-btn active" data-tag="通用游客">通用</span>
-      <span class="tag-btn" data-tag="历史爱好者">历史</span>
-      <span class="tag-btn" data-tag="自然风光爱好者">自然</span>
-      <span class="tag-btn" data-tag="文化探索者">文化</span>
-      <span class="tag-btn" data-tag="亲子游客">亲子</span>
-    </div>
-    <div class="chat-box" id="chatBox"></div>
-    <button class="btn-recommend" onclick="getRecommend()">🗺️ 个性化路线推荐</button>
-    <div class="input-area">
-      <input type="text" id="userInput" placeholder="输入你的问题..." onkeydown="if(event.key==='Enter')sendText()">
-      <button class="btn-send" onclick="sendText()">发送</button>
-      <button class="btn-voice" id="voiceBtn">
-        <div class="waveform">
-          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="center-nav-right">
+        <span>AI导游小灵</span>
+        <div class="online-dot"></div>
+        <a class="admin-link" href="/admin_login">管理员登录</a>
+      </div>
+    </nav>
+
+    <!-- 对话气泡区 -->
+    <div class="chat-zone" id="chatBox"></div>
+
+    <!-- 标签+输入组合区 -->
+    <div class="input-zone">
+      <div class="tag-btns">
+        <span class="tag-btn active" data-tag="通用游客">通用</span>
+        <span class="tag-btn" data-tag="历史爱好者">历史</span>
+        <span class="tag-btn" data-tag="自然风光爱好者">自然</span>
+        <span class="tag-btn" data-tag="文化探索者">文化</span>
+        <span class="tag-btn" data-tag="亲子游客">亲子</span>
+      </div>
+      <div class="input-row">
+        <div class="input-wrap">
+          <input type="text" id="userInput" placeholder="输入你的问题，或点击左侧景点开始游览..." onkeydown="if(event.key==='Enter')sendText()">
         </div>
-
-      </button>
+        <button class="btn-send" onclick="sendText()">➤</button>
+        <button class="btn-voice" id="voiceBtn">
+          🎤
+          <div class="waveform">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- 右侧Live2D数字人 -->
-  <div class="live2d-panel">
-    <iframe id="live2dFrame" src="http://localhost:3000/sentio?embed=true" allow="autoplay"></iframe>
-    <div class="live2d-label">🎀 AI导游小灵</div>
-  </div>
+  </main>
+
+  <!-- 右栏：数字人面板 -->
+  <aside class="col-right">
+    <div class="dh-halo"></div>
+    <div class="dh-container">
+      <iframe id="live2dFrame" src="http://localhost:3000/sentio?embed=true" allow="autoplay"></iframe>
+      <div class="dh-sound-wave" id="dhSoundWave">
+        <div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div>
+      </div>
+    </div>
+    <div class="dh-name-tag">AI导游小灵</div>
+  </aside>
+
 </div>
 
 <script>
 const scenicData = [
-  {
-    name: '灵山胜境',
-    spots: [
-      { name: '灵山大佛', desc: '灵山标志性景点，高88米青铜释迦牟尼立像' },
-      { name: '梵宫', desc: '佛教艺术殿堂，融合建筑、雕塑、壁画于一体' },
-      { name: '九龙灌浴', desc: '大型动态音乐群雕，再现佛陀诞生场景' },
-      { name: '祥符禅寺', desc: '千年古刹，灵山佛教文化发源地' },
-      { name: '五印坛城', desc: '藏式文化景观，展现藏传佛教艺术精髓' }
-    ]
-  },
-  {
-    name: '拈花湾',
-    spots: [
-      { name: '香月花街', desc: '唐风宋韵商业街，体验禅意生活' },
-      { name: '拈花塔', desc: '拈花湾地标建筑，夜景尤为壮观' },
-      { name: '微笑广场', desc: '大型灯光水秀表演场地' },
-      { name: '鹿鸣谷', desc: '生态休闲区，亲近自然的好去处' }
-    ]
-  },
-  {
-    name: '其他景点',
-    spots: [
-      { name: '禅意小镇', desc: '体验禅修文化的特色街区' },
-      { name: '灵山植物园', desc: '收集各类珍稀植物的生态园区' },
-      { name: '太湖风光带', desc: '欣赏太湖美景的观景区域' }
-    ]
-  }
+  { name: '灵山胜境', spots: [
+    { name: '灵山大佛', desc: '高88米青铜释迦牟尼立像', icon: '' },
+    { name: '梵宫', desc: '佛教艺术殿堂', icon: '🏛️' },
+    { name: '九龙灌浴', desc: '大型动态音乐群雕', icon: '🐉' },
+    { name: '祥符禅寺', desc: '千年古刹', icon: '' },
+    { name: '五印坛城', desc: '藏式文化景观', icon: '🏯' }
+  ]},
+  { name: '拈花湾', spots: [
+    { name: '香月花街', desc: '唐风宋韵商业街', icon: '🌸' },
+    { name: '拈花塔', desc: '花湾地标建筑', icon: '🗼' },
+    { name: '微笑广场', desc: '灯光水秀表演', icon: '✨' },
+    { name: '鹿鸣谷', desc: '生态休闲区', icon: '' }
+  ]},
+  { name: '其他景点', spots: [
+    { name: '禅意小镇', desc: '禅修文化街区', icon: '🏘️' },
+    { name: '灵山植物园', desc: '珍稀植物园区', icon: '🌿' },
+    { name: '太湖风光带', desc: '太湖观景区域', icon: '' }
+  ]}
 ];
 
 let currentTag = '通用游客';
 let currentSpotName = '';
+let currentSpotDesc = '';
 
 document.querySelectorAll('.tag-btn').forEach(btn => {
   btn.onclick = () => {
@@ -173,50 +846,49 @@ document.querySelectorAll('.tag-btn').forEach(btn => {
 function renderScenicList(data) {
   const list = document.getElementById('scenicList');
   list.innerHTML = data.map((group, gi) => `
-    <div class="scenic-group">
-      <div class="scenic-group-title" onclick="toggleGroup(${gi})">📁 ${group.name}</div>
-      <div class="spot-list" id="group-${gi}">
-        ${group.spots.map((spot, si) => `
-          <div class="spot-item" onclick="selectSpot('${group.name}', '${spot.name}', '${spot.desc}', this)">${spot.name}</div>
-        `).join('')}
-      </div>
+    <div class="left-group-title" onclick="toggleGroup(${gi})">📂 ${group.name}</div>
+    <div class="left-spots" id="group-${gi}">
+      ${group.spots.map(spot => `
+        <div class="left-spot-item" onclick="selectSpot('${group.name}','${spot.name}','${spot.desc}',this)">
+          <div class="dot"></div>
+          <span class="spot-icon">${spot.icon || ''}</span>
+          <span>${spot.name}</span>
+        </div>
+      `).join('')}
     </div>
   `).join('');
 }
 
-function toggleGroup(idx) {
-  const el = document.getElementById(`group-${idx}`);
-  el.classList.toggle('show');
-}
+function toggleGroup(idx) { document.getElementById(`group-${idx}`).classList.toggle('show'); }
 
 function filterScenic() {
   const keyword = document.getElementById('searchInput').value.toLowerCase();
   if (!keyword) { renderScenicList(scenicData); return; }
-  const filtered = scenicData.map(g => ({
-    ...g,
-    spots: g.spots.filter(s => s.name.toLowerCase().includes(keyword) || s.desc.toLowerCase().includes(keyword))
-  })).filter(g => g.spots.length > 0);
+  const filtered = scenicData.map(g => ({...g, spots: g.spots.filter(s => s.name.toLowerCase().includes(keyword) || s.desc.toLowerCase().includes(keyword))})).filter(g => g.spots.length > 0);
   renderScenicList(filtered);
   filtered.forEach((_, i) => { const el = document.getElementById(`group-${i}`); if(el) el.classList.add('show'); });
 }
 
 function selectSpot(scenicName, spotName, spotDesc, el) {
-  document.querySelectorAll('.spot-item').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.left-spot-item').forEach(s => s.classList.remove('active'));
   el.classList.add('active');
   currentSpotName = spotName;
-  document.getElementById('currentSpot').textContent = `当前：${scenicName} · ${spotName}`;
-  addMsg(` 正在游览：${spotName}`, 'scenic');
+  currentSpotDesc = spotDesc;
+
+  document.getElementById('navSpotName').textContent = spotName;
+
+  const box = document.getElementById('chatBox');
+  box.innerHTML = '';
+  addMsg(`正在游览：${spotName}`, 'scenic');
   showLoading();
-  const q = `请为我详细介绍${spotName}，${spotDesc}。包括历史背景、特色亮点和游览建议。`;
+
   fetch('/api/tourist/text_chat', {
     method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({question: q, tag: currentTag})
+    body: JSON.stringify({question: `请为我详细介绍${spotName}，${spotDesc}。包括历史背景、特色亮点和游览建议。`, tag: currentTag})
   }).then(res => res.json()).then(data => {
     hideLoading();
-    if (data.code === 200) {
-      addMsg(data.data.answer, 'ai');
-      addAudio(data.data.audio_url);
-    } else { addMsg('出错了：' + data.msg, 'ai'); }
+    if (data.code === 200) { addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
+    else { addMsg('出错了：' + data.msg, 'ai'); }
   }).catch(() => { hideLoading(); addMsg('网络错误', 'ai'); });
 }
 
@@ -224,46 +896,39 @@ function addMsg(text, type) {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
   div.className = 'msg msg-' + type;
-  div.textContent = text;
+  if (type === 'ai' && text === box._welcomeText) {
+    div.innerHTML = '🙏 ' + text;
+  } else {
+    div.textContent = text;
+  }
   box.appendChild(div);
   if (type === 'ai') {
     const fb = document.createElement('div');
     fb.className = 'msg-feedback';
-    fb.innerHTML = `<button class="feedback-btn" onclick="sendFeedback(this,'正面')">👍 满意</button><button class="feedback-btn" onclick="sendFeedback(this,'中性')">😐 一般</button><button class="feedback-btn" onclick="sendFeedback(this,'负面')">👎 不满意</button>`;
+    fb.innerHTML = `<button class="feedback-btn" onclick="sendFeedback(this,'正面')">👍 有帮助</button><button class="feedback-btn" onclick="sendFeedback(this,'负面')">👎 无帮助</button>`;
     box.appendChild(fb);
   }
   box.scrollTop = box.scrollHeight;
 }
 
 async function sendFeedback(btn, emotion) {
-  if (btn.parentElement.querySelector('.done')) return;
-  btn.parentElement.querySelectorAll('.feedback-btn').forEach(b => b.classList.add('done'));
-  await fetch('/api/tourist/feedback', {
-    method: 'POST', headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({emotion})
-  });
+  if (btn.parentElement.querySelector('.selected')) return;
+  btn.classList.add('selected');
+  btn.parentElement.querySelectorAll('.feedback-btn').forEach(b => { if (!b.classList.contains('selected')) b.classList.add('done'); });
+  await fetch('/api/tourist/feedback', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({emotion}) });
 }
 
-let live2dNotified = false;
-let isGuidePlaying = false;
-
-let currentAudioId = 0;
+let isGuidePlaying = false, currentAudioId = 0, pendingPlay = null;
 
 window.addEventListener('message', (event) => {
   const msg = event.data || {};
   if (msg.type === 'playingStatus') {
     isGuidePlaying = msg.playing;
-    if (isGuidePlaying) {
-      alert('导游正在讲解中，请等待播放完毕~');
-    } else if (pendingPlay) {
-      const { audioSrc, aid } = pendingPlay;
-      pendingPlay = null;
-      doPlayGuideAudio(audioSrc, aid);
-    }
+    const sw = document.getElementById('dhSoundWave');
+    if (isGuidePlaying) { sw.classList.add('active'); }
+    else { sw.classList.remove('active'); if (pendingPlay) { const {audioSrc, aid} = pendingPlay; pendingPlay = null; doPlayGuideAudio(audioSrc, aid); } }
   }
 });
-
-let pendingPlay = null;
 
 function addAudio(url) {
   const box = document.getElementById('chatBox');
@@ -272,10 +937,10 @@ function addAudio(url) {
   const fileName = url.split('\\').pop().split('/').pop();
   const audioSrc = "/api/common/audio/" + fileName;
   const aid = ++currentAudioId;
-  div.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#666;">
-    <span id="audioStatus-${aid}">🔊 点击播放导游语音</span>
-    <button onclick="playGuideAudio('${audioSrc}',${aid})" style="padding:4px 12px;border:1px solid #667eea;border-radius:8px;background:#fff;color:#667eea;cursor:pointer;">▶ 播放</button>
-    <button onclick="stopGuideAudio()" style="padding:4px 12px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#999;cursor:pointer;">⏹ 停止</button>
+  div.innerHTML = `<div class="audio-controls">
+    <span id="audioStatus-${aid}">🔊 导游语音</span>
+    <button class="audio-btn" onclick="playGuideAudio('${audioSrc}',${aid})">▶ 播放</button>
+    <button class="audio-btn stop" onclick="stopGuideAudio()">⏹ 停止</button>
   </div>`;
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
@@ -283,12 +948,8 @@ function addAudio(url) {
 
 function playGuideAudio(audioSrc, aid) {
   const iframe = document.getElementById('live2dFrame');
-  if (iframe && iframe.contentWindow) {
-    pendingPlay = { audioSrc, aid };
-    iframe.contentWindow.postMessage({ type: 'queryPlaying' }, '*');
-  } else {
-    doPlayGuideAudio(audioSrc, aid);
-  }
+  if (iframe && iframe.contentWindow) { pendingPlay = {audioSrc, aid}; iframe.contentWindow.postMessage({type:'queryPlaying'},'*'); }
+  else { doPlayGuideAudio(audioSrc, aid); }
 }
 
 function doPlayGuideAudio(audioSrc, aid) {
@@ -296,74 +957,55 @@ function doPlayGuideAudio(audioSrc, aid) {
   const status = document.getElementById('audioStatus-' + aid);
   if (status) status.textContent = '🔊 播放中...';
   isGuidePlaying = true;
-  const fullUrl = window.location.origin + audioSrc;
+  document.getElementById('dhSoundWave').classList.add('active');
   const iframe = document.getElementById('live2dFrame');
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'playAudio', audioUrl: fullUrl, id: aid }, '*');
-  }
+  if (iframe && iframe.contentWindow) { iframe.contentWindow.postMessage({type:'playAudio',audioUrl:window.location.origin+audioSrc,id:aid},'*'); }
 }
 
 function stopGuideAudio() {
   const iframe = document.getElementById('live2dFrame');
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'stopAudio' }, '*');
-  }
+  if (iframe && iframe.contentWindow) { iframe.contentWindow.postMessage({type:'stopAudio'},'*'); }
   isGuidePlaying = false;
-  document.querySelectorAll('[id^="audioStatus-"]').forEach(el => {
-    if (el.textContent.includes('播放中')) el.textContent = '🔊 已停止';
-  });
+  document.getElementById('dhSoundWave').classList.remove('active');
+  document.querySelectorAll('[id^="audioStatus-"]').forEach(el => { if (el.textContent.includes('播放中')) el.textContent = '🔊 已停止'; });
 }
 
 function showLoading() {
   const box = document.getElementById('chatBox');
   const div = document.createElement('div');
-  div.className = 'loading'; div.id = 'loadingMsg'; div.textContent = '导游讲解中...';
+  div.className = 'msg msg-ai typing-dots'; div.id = 'loadingMsg';
+  div.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
   box.appendChild(div); box.scrollTop = box.scrollHeight;
 }
 function hideLoading() { const el = document.getElementById('loadingMsg'); if(el) el.remove(); }
 
 async function sendText() {
   const input = document.getElementById('userInput');
-  const q = input.value.trim();
-  if (!q) return;
+  const q = input.value.trim(); if (!q) return;
   const finalQ = currentSpotName ? `我在${currentSpotName}，${q}` : q;
   addMsg(q, 'user'); input.value = '';
   showLoading();
   try {
-    const res = await fetch('/api/tourist/text_chat', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({question: finalQ, tag: currentTag})
-    });
-    const data = await res.json();
-    hideLoading();
+    const res = await fetch('/api/tourist/text_chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({question:finalQ, tag:currentTag}) });
+    const data = await res.json(); hideLoading();
     if (data.code === 200) { addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
     else { addMsg('出错了：' + data.msg, 'ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
 
 async function sendAudioBlob(blob) {
-  addMsg('🎤 语音消息', 'user');
-  showLoading();
-  const fd = new FormData();
-  fd.append('audio', blob, 'recording.webm');
-  fd.append('tag', currentTag);
+  addMsg('🎤 语音消息', 'user'); showLoading();
+  const fd = new FormData(); fd.append('audio', blob, 'recording.webm'); fd.append('tag', currentTag);
   try {
-    const res = await fetch('/api/tourist/voice_chat', {method:'POST', body: fd});
-    const data = await res.json();
-    hideLoading();
-    if (data.code === 200) {
-      addMsg('识别：' + data.data.question, 'user');
-      addMsg(data.data.answer, 'ai');
-      addAudio(data.data.audio_url);
-    } else { addMsg('语音识别失败：' + (data.msg || ''), 'ai'); }
+    const res = await fetch('/api/tourist/voice_chat', {method:'POST', body:fd});
+    const data = await res.json(); hideLoading();
+    if (data.code === 200) { addMsg('识别：'+data.data.question, 'user'); addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
+    else { addMsg('语音识别失败', 'ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
 }
 
 const voiceBtn = document.getElementById('voiceBtn');
-let mediaRecorder = null;
-let audioChunks = [];
-let recordStartTime = 0;
-let recognition = null;
+let mediaRecorder = null, audioChunks = [], recognition = null;
 
 voiceBtn.addEventListener('mousedown', startRecord);
 voiceBtn.addEventListener('touchstart', startRecord);
@@ -372,77 +1014,40 @@ voiceBtn.addEventListener('mouseleave', stopRecord);
 voiceBtn.addEventListener('touchend', stopRecord);
 
 async function startRecord(e) {
-  e.preventDefault();
-  audioChunks = [];
+  e.preventDefault(); audioChunks = [];
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstop = () => {
-      stream.getTracks().forEach(t => t.stop());
-      const input = document.getElementById('userInput');
-      const recognizedText = input.value.trim();
-      input.value = '';
-      if (recognizedText) { sendText(); } else { addMsg('未识别到文字', 'ai'); }
-    };
-    mediaRecorder.start();
-    recordStartTime = Date.now();
-    voiceBtn.classList.add('recording');
-    startRealtimeRecognition();
-  } catch(err) { addMsg('无法访问麦克风', 'ai'); }
+    mediaRecorder.ondataavailable = (e) => { if(e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => { stream.getTracks().forEach(t=>t.stop()); const input=document.getElementById('userInput'); const t=input.value.trim(); input.value=''; if(t) sendText(); else addMsg('未识别到文字','ai'); };
+    mediaRecorder.start(); voiceBtn.classList.add('recording'); startRealtimeRecognition();
+  } catch(err) { addMsg('无法访问麦克风','ai'); }
 }
 
-function stopRecord() {
-  if (mediaRecorder && mediaRecorder.state === 'recording') {
-    mediaRecorder.stop();
-    voiceBtn.classList.remove('recording');
-    stopRealtimeRecognition();
-  }
-}
+function stopRecord() { if(mediaRecorder&&mediaRecorder.state==='recording'){mediaRecorder.stop();voiceBtn.classList.remove('recording');stopRealtimeRecognition();} }
 
 function startRealtimeRecognition() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) return;
-  recognition = new SR();
-  recognition.lang = 'zh-CN';
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.onresult = (event) => {
-    let text = '';
-    for (let i = 0; i < event.results.length; i++) text += event.results[i][0].transcript;
-    document.getElementById('userInput').value = text;
-  };
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return;
+  recognition=new SR(); recognition.lang='zh-CN'; recognition.continuous=true; recognition.interimResults=true;
+  recognition.onresult=(event)=>{let t='';for(let i=0;i<event.results.length;i++)t+=event.results[i][0].transcript;document.getElementById('userInput').value=t;};
   recognition.start();
 }
-
-function stopRealtimeRecognition() {
-  if (recognition) { recognition.stop(); recognition = null; }
-}
+function stopRealtimeRecognition() { if(recognition){recognition.stop();recognition=null;} }
 
 async function getRecommend() {
-  addMsg(`️ 请为「${currentTag}」推荐路线`, 'user');
-  showLoading();
+  addMsg(`⭐ 请为「${currentTag}」推荐路线`, 'user'); showLoading();
   try {
-    const res = await fetch('/api/tourist/recommend', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({tag: currentTag})
-    });
-    const data = await res.json();
-    hideLoading();
-    if (data.code === 200) { addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
-    else { addMsg('推荐失败', 'ai'); }
-  } catch(e) { hideLoading(); addMsg('网络错误', 'ai'); }
-}
-
-function testMouth() {
-  const iframe = document.getElementById('live2dFrame');
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'testMouth' }, '*');
-  }
+    const res = await fetch('/api/tourist/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tag:currentTag})});
+    const data = await res.json(); hideLoading();
+    if (data.code===200) { addMsg(data.data.answer,'ai'); addAudio(data.data.audio_url); } else { addMsg('推荐失败','ai'); }
+  } catch(e) { hideLoading(); addMsg('网络错误','ai'); }
 }
 
 renderScenicList(scenicData);
-addMsg('欢迎来到灵山景区！点击左侧景点开始游览，或直接输入问题问我~', 'ai');
+const welcomeText = '欢迎来到灵山胜境！我是你的AI导游小灵，有什么想了解的景点吗？';
+const chatBox = document.getElementById('chatBox');
+chatBox._welcomeText = welcomeText;
+addMsg(welcomeText, 'ai');
 </script>
 
 </body>

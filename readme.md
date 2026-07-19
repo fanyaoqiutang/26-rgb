@@ -72,30 +72,58 @@ source venv/bin/activate
 激活成功后终端前缀出现 (venv)。
 2. 安装全部依赖
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+3. Whisper 体积较大，建议单独安装
+pip install openai-whisper --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple
 六、知识库初始化（灵山胜境景区资料）
 将景区 Word 文档放入目录：docs/scenic_files/
 执行知识库初始化脚本，自动解析文档并存入 Milvus 向量库
-python init_kb.py
-控制台输出入库文本片段数量，代表知识库构建完成。
-七、启动后端服务
+ppython ai_core/vector_milvus.py 
+控制台输出"🎉 知识库初始化完毕，总共入库 XX 条文本片段"，代表知识库构建完成。
+七、Live2D 数字人服务启动
+1.安装前端依赖并启动 Next.js 前端（端口 3000）：
+cd live2d_digital\web npm install
+npm run dev
+2.启动 FastAPI 数字人服务端（端口 8880，新开终端，需激活虚拟环境）：
+cd live2d_digital 
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+python main.py
+八、启动后端服务
 虚拟环境保持激活状态，执行：
 bash
 运行
 python main.py
 控制台输出 Running on http://127.0.0.1:5000 代表后端接口启动成功。
-八、前端页面启动
-1. 游客移动端 H5
+九、前端页面启动
+cd D:/26-rgb/live2d_digital/web
+npm run dev 
+1.游客移动端 H5
 cd frontend_h5
 npm install
-npm run dev
-2. 景区管理后台
+npm run dev 
+2景区管理后台
 cd frontend_admin
 npm install
 npm run dev
-终端打印本地访问地址，浏览器打开即可使用。
-十、系统功能验证
-游客端：支持文字提问、录音语音提问，自动生成数字人对口型讲解视频；
-管理后台：使用 admin / 123456 登录，可管理知识库、查看游客对话日志、查看访问数据大屏。
+3.终端打印本地访问地址，浏览器打开即可使用。
+启动完成后，浏览器访问以下地址： 
+游客导览页：http://localhost:5000/ 
+管理员登录：http://localhost:5000/admin_login
+管理后台：http://localhost:5000/admin Live2D 
+数字人独立页面：http://localhost:3000/sentio?embed=true（游客页通过 iframe 嵌入此地址）
+十、系统功能说明
+游客端功能：
+文字对话：输入问题，AI 基于 RAG 知识库生成回答，Edge-TTS 自动语音播报
+语音对话：按住麦克风按钮录音，Whisper 识别后自动发送
+实时语音识别：录音时 Web Speech API 实时显示识别文字到输入框
+景点选择：左侧景点列表点击切换当前景点
+游客标签：通用/历史/自然/文化/亲子，影响 AI 回答风格
+满意度反馈：每条 AI 回答下方可点"有帮助/无帮助"
+数字人展示：右侧 Live2D 数字人实时口型同步，带佛光光晕动效
+管理后台功能（使用 admin / 123456 登录）：
+数据大屏：今日/本周/累计对话数、满意度、7 日对话趋势、热门问答 TOP5
+知识库管理：卡片式展示、标签筛选（景点介绍/文化故事/历史背景/景区知识）、搜索、新增/删除知识条目
+数字人配置：修改数字人名称、TTS 音色（晓晓/云希/晓伊/云健）、服装风格
+分析报告：游客关注点词云、情感分布环形图（正面/中性/负面）、情感趋势、高频问题 TOP10、服务建议（含优先级标签）
 十一、团队协作说明
 database/tables.sql 统一提交 Git，后续表结构变更更新该文件，所有人重新手动执行 SQL 同步表；
 虚拟环境 venv、node_modules、模型缓存、音视频临时文件均已配置.gitignore，不会上传仓库；

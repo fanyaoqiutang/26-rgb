@@ -4,236 +4,1385 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>管理后台 - 灵山景区</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
-.header { background: #1a1a2e; color: #fff; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-.header h1 { font-size: 20px; }
-.nav { display: flex; gap: 5px; }
-.nav button { padding: 8px 20px; border: none; border-radius: 6px; cursor: pointer; background: transparent; color: #aaa; font-size: 14px; }
-.nav button.active { background: #667eea; color: #fff; }
-.content { padding: 20px 30px; }
+
+:root {
+  --sidebar-bg: #1e2a3a;
+  --sidebar-hover: rgba(255,255,255,0.08);
+  --sidebar-active: rgba(212, 168, 83, 0.12);
+  --gold: #d4a853;
+  --gold-light: #f0d78c;
+  --blue: #4a7cff;
+  --blue-light: #6c9aff;
+  --green: #43e97b;
+  --orange: #f0913a;
+  --red: #f56c6c;
+  --bg: #f0f2f5;
+  --card-bg: #fff;
+  --text-dark: #1a1a2e;
+  --text-mid: #555;
+  --text-light: #999;
+  --border: #e8e8e8;
+}
+
+body {
+  font-family: 'Noto Serif SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg);
+  display: flex;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ========== 左侧导航栏 ========== */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.sidebar-logo {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo .logo-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+
+.sidebar-logo h2 {
+  font-size: 15px;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.sidebar-logo h2 span {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 400;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 12px 0;
+  overflow-y: auto;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 14px;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+
+.menu-item:hover {
+  background: var(--sidebar-hover);
+  color: #fff;
+}
+
+.menu-item.active {
+  background: var(--sidebar-active);
+  color: var(--gold-light);
+  border-left-color: var(--gold);
+}
+
+.menu-item .icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+}
+
+.menu-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 8px 16px;
+}
+
+/* ========== 右侧主体 ========== */
+.main-wrapper {
+  margin-left: 240px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ========== 顶部栏 ========== */
+.topbar {
+  height: 56px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.topbar-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.btn-logout {
+  padding: 8px 20px;
+  border: 1px solid rgba(245, 108, 108, 0.3);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+}
+
+.btn-logout:hover {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+  box-shadow: 0 2px 10px rgba(245, 108, 108, 0.25);
+}
+
+/* ========== 内容区 ========== */
+.content {
+  padding: 24px 28px;
+  flex: 1;
+}
+
 .panel { display: none; }
-.panel.active { display: block; }
-.card { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.card h3 { margin-bottom: 15px; color: #333; font-size: 16px; }
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-.stat-card { background: #fff; border-radius: 12px; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-.stat-card .num { font-size: 32px; font-weight: bold; color: #667eea; }
-.stat-card .label { color: #888; font-size: 13px; margin-top: 5px; }
-.stat-card.today { border-left: 4px solid #4facfe; }
-.stat-card.week { border-left: 4px solid #43e97b; }
-.stat-card.satisfaction { border-left: 4px solid #f093fb; }
-.stat-card.hot { border-left: 4px solid #fa709a; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
-th { background: #fafafa; color: #666; }
-.btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; color: #fff; }
-.btn-primary { background: #667eea; }
-.btn-danger { background: #f56c6c; }
-.btn-sm { padding: 5px 10px; font-size: 12px; }
-textarea, input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; margin-bottom: 10px; }
-textarea { height: 100px; resize: vertical; }
-.form-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.form-row > * { flex: 1; }
-.emotion-bar { display: flex; gap: 15px; margin-top: 10px; }
-.emotion-item { flex: 1; text-align: center; padding: 15px; border-radius: 8px; }
-.emotion-pos { background: #f0f9eb; color: #67c23a; }
-.emotion-neu { background: #f4f4f5; color: #909399; }
-.emotion-neg { background: #fef0f0; color: #f56c6c; }
-.chart-bar { height: 20px; background: #667eea; border-radius: 4px; margin-top: 5px; transition: width 0.5s; }
-.trend-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.trend-date { font-size: 12px; color: #888; width: 80px; }
-.trend-bar-wrap { flex: 1; background: #f5f5f5; border-radius: 4px; height: 24px; overflow: hidden; }
-.trend-bar { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.6s; display: flex; align-items: center; padding-left: 8px; color: #fff; font-size: 12px; }
-.satisfaction-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-.sat-date { font-size: 12px; color: #888; width: 80px; }
-.sat-bar-wrap { flex: 1; background: #f5f5f5; border-radius: 12px; height: 20px; overflow: hidden; }
-.sat-bar { height: 100%; background: linear-gradient(90deg, #43e97b, #38f9d7); border-radius: 12px; transition: width 0.6s; }
-.sat-label { font-size: 12px; color: #67c23a; width: 50px; text-align: right; }
-.hot-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
-.hot-rank { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: bold; color: #fff; margin-right: 12px; }
-.rank-1 { background: #fa709a; }
-.rank-2 { background: #f093fb; }
-.rank-3 { background: #667eea; }
-.rank-n { background: #ddd; color: #666; }
-.hot-text { flex: 1; font-size: 14px; color: #333; }
-.hot-freq { font-size: 13px; color: #999; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.panel.active { display: block; animation: fadeInUp 0.4s ease-out; }
+
+/* ========== 卡片 ========== */
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: box-shadow 0.3s;
+}
+
+.card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ========== 统计卡片 ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+  animation: cardFadeIn 0.5s ease-out both;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+
+.stat-card.c-blue::before { background: linear-gradient(180deg, #4a7cff, #6c9aff); }
+.stat-card.c-green::before { background: linear-gradient(180deg, #43e97b, #38f9d7); }
+.stat-card.c-gold::before { background: linear-gradient(180deg, #d4a853, #f0d78c); }
+.stat-card.c-purple::before { background: linear-gradient(180deg, #a18cd1, #fbc2eb); }
+
+.stat-card .stat-icon {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.stat-card .stat-num {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.1;
+}
+
+.stat-card .stat-label {
+  color: var(--text-light);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* ========== 图表区 ========== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* 趋势条形图 */
+.trend-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  animation: slideInRight 0.4s ease-out both;
+}
+
+.trend-row:nth-child(1) { animation-delay: 0.05s; }
+.trend-row:nth-child(2) { animation-delay: 0.1s; }
+.trend-row:nth-child(3) { animation-delay: 0.15s; }
+.trend-row:nth-child(4) { animation-delay: 0.2s; }
+.trend-row:nth-child(5) { animation-delay: 0.25s; }
+.trend-row:nth-child(6) { animation-delay: 0.3s; }
+.trend-row:nth-child(7) { animation-delay: 0.35s; }
+
+.trend-date {
+  font-size: 12px;
+  color: var(--text-light);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.trend-bar-wrap {
+  flex: 1;
+  background: #f5f7fa;
+  border-radius: 6px;
+  height: 28px;
+  overflow: hidden;
+  position: relative;
+}
+
+.trend-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a7cff, #6c9aff);
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.trend-bar:hover {
+  filter: brightness(1.1);
+}
+
+/* 满意度 */
+.satisfaction-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sat-date { font-size: 12px; color: var(--text-light); width: 80px; flex-shrink: 0; }
+
+.sat-bar-wrap {
+  flex: 1;
+  background: #f0f9eb;
+  border-radius: 14px;
+  height: 22px;
+  overflow: hidden;
+}
+
+.sat-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #43e97b, #38f9d7);
+  border-radius: 14px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sat-label { font-size: 12px; color: #67c23a; width: 50px; text-align: right; font-weight: 600; }
+
+/* 热门问答条形图 */
+.hot-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  animation: slideInRight 0.4s ease-out both;
+}
+
+.hot-bar-item:nth-child(1) { animation-delay: 0.05s; }
+.hot-bar-item:nth-child(2) { animation-delay: 0.1s; }
+.hot-bar-item:nth-child(3) { animation-delay: 0.15s; }
+.hot-bar-item:nth-child(4) { animation-delay: 0.2s; }
+.hot-bar-item:nth-child(5) { animation-delay: 0.25s; }
+
+.hot-rank-num {
+  width: 26px; height: 26px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.hot-rank-1 { background: linear-gradient(135deg, #fa709a, #fee140); }
+.hot-rank-2 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+.hot-rank-3 { background: linear-gradient(135deg, #4a7cff, #6c9aff); }
+.hot-rank-n { background: #ddd; color: #888; }
+
+.hot-bar-text {
+  width: 200px;
+  font-size: 13px;
+  color: var(--text-dark);
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hot-bar-track {
+  flex: 1;
+  background: #f5f7fa;
+  border-radius: 6px;
+  height: 24px;
+  overflow: hidden;
+}
+
+.hot-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-size: 11px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.hot-freq-tag {
+  font-size: 11px;
+  color: var(--text-light);
+  width: 40px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ========== 知识库 ========== */
+.kb-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 18px;
+  align-items: center;
+}
+
+.kb-search {
+  flex: 1;
+  padding: 10px 16px 10px 38px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.3s;
+  background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 12px center no-repeat;
+  font-family: 'Noto Serif SC', sans-serif;
+}
+
+.kb-search:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(74, 124, 255, 0.1);
+}
+
+.kb-filter {
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+  background: #fff;
+  cursor: pointer;
+  font-family: 'Noto Serif SC', sans-serif;
+  transition: all 0.3s;
+}
+
+.kb-filter:focus { border-color: var(--blue); }
+
+.btn-add {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+  white-space: nowrap;
+}
+
+.btn-add:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(74, 124, 255, 0.3);
+}
+
+/* 表格 */
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.data-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border);
+  background: #fafbfc;
+}
+
+.data-table th:first-child { border-radius: 8px 0 0 0; }
+.data-table th:last-child { border-radius: 0 8px 0 0; }
+
+.data-table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-mid);
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.data-table tr:hover td {
+  background: #f8f9fb;
+}
+
+.data-table .kb-title {
+  font-weight: 600;
+  color: var(--text-dark);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cat-scenic { background: #e8f4fd; color: #1890ff; }
+.cat-culture { background: #f0f9eb; color: #52c41a; }
+.cat-history { background: #fff7e6; color: #fa8c16; }
+.cat-default { background: #f5f5f5; color: #888; }
+
+.kb-icon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-mid);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.page-btn:hover { border-color: var(--blue); color: var(--blue); }
+.page-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+/* ========== 数字人配置 ========== */
+.dh-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.dh-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+  border-radius: 16px;
+  border: 1px solid rgba(74, 124, 255, 0.1);
+}
+
+.dh-avatar-circle {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 60px;
+  box-shadow: 0 8px 30px rgba(74, 124, 255, 0.2);
+  margin-bottom: 16px;
+  border: 4px solid #fff;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+.dh-avatar-circle img {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.dh-preview-label {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.dh-form { display: flex; flex-direction: column; gap: 18px; }
+
+.form-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.form-group label {
+  width: 100px;
+  font-size: 14px;
+  color: var(--text-mid);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.form-group input,
+.form-group select {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+  background: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(74, 124, 255, 0.1);
+}
+
+.btn-save {
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Noto Serif SC', sans-serif;
+  align-self: flex-end;
+  box-shadow: 0 4px 15px rgba(212, 168, 83, 0.3);
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(212, 168, 83, 0.4);
+}
+
+.save-toast {
+  position: fixed;
+  top: 70px;
+  right: 30px;
+  padding: 12px 24px;
+  background: #67c23a;
+  color: #fff;
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: 0 4px 15px rgba(103, 194, 58, 0.3);
+  display: none;
+  z-index: 300;
+  animation: toastIn 0.3s ease-out;
+}
+
+.save-toast.show { display: block; }
+
+/* ========== 分析报告 ========== */
+.report-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.report-full {
+  grid-column: 1 / -1;
+}
+
+/* 情感环形图 */
+.emotion-donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 10px 0;
+}
+
+.emotion-donut {
+  width: 160px; height: 160px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.emotion-donut-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px; height: 90px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.emotion-donut-center .pct {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.emotion-donut-center .pct-label {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.emotion-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-mid);
+}
+
+.legend-dot {
+  width: 12px; height: 12px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.legend-dot.pos { background: #67c23a; }
+.legend-dot.neu { background: #909399; }
+.legend-dot.neg { background: #f56c6c; }
+
+.legend-value {
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-left: auto;
+  padding-left: 20px;
+}
+
+/* 情感趋势 */
+.emotion-trend-row {
+  margin-bottom: 14px;
+}
+
+.emotion-trend-date {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.emotion-trend-bars {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.emotion-trend-label {
+  font-size: 11px;
+  width: 40px;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.emotion-trend-label.pos-label { color: #67c23a; }
+.emotion-trend-label.neg-label { color: #f56c6c; }
+
+.emotion-trend-track {
+  flex: 1;
+  border-radius: 4px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.emotion-trend-track.pos-track { background: #f0f9eb; }
+.emotion-trend-track.neg-track { background: #fef0f0; }
+
+.emotion-trend-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.emotion-trend-fill.pos-fill { background: #67c23a; }
+.emotion-trend-fill.neg-fill { background: #f56c6c; }
+
+/* 高频问题 */
+.hotq-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.hotq-num {
+  width: 24px; height: 24px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.hotq-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hotq-bar-wrap {
+  width: 120px;
+  background: #f5f7fa;
+  border-radius: 4px;
+  height: 18px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.hotq-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a7cff, #6c9aff);
+  border-radius: 4px;
+  transition: width 0.6s;
+}
+
+.hotq-freq {
+  font-size: 12px;
+  color: var(--text-light);
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.hotq-action {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--blue);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.hotq-action:hover {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+/* 服务建议 */
+.suggestion-card {
+  padding: 14px 18px;
+  margin-bottom: 10px;
+  background: #fafbfc;
+  border-radius: 10px;
+  border-left: 4px solid var(--blue);
+  font-size: 13px;
+  color: var(--text-mid);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s;
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.suggestion-card:hover {
+  background: #f0f4ff;
+  transform: translateX(4px);
+}
+
+.suggestion-card:nth-child(1) { animation-delay: 0.05s; }
+.suggestion-card:nth-child(2) { animation-delay: 0.1s; }
+.suggestion-card:nth-child(3) { animation-delay: 0.15s; }
+
+.priority-tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.priority-high { background: #fef0f0; color: #f56c6c; }
+.priority-mid { background: #fff7e6; color: #fa8c16; }
+.priority-low { background: #f0f9eb; color: #52c41a; }
+
+/* ========== 新增知识弹窗 ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  animation: modalIn 0.3s ease-out;
+}
+
+.modal h3 {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.modal textarea {
+  width: 100%;
+  height: 120px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 12px;
+  font-family: 'Noto Serif SC', sans-serif;
+  transition: border-color 0.3s;
+}
+
+.modal textarea:focus { border-color: var(--blue); }
+
+.modal select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 16px;
+  font-family: 'Noto Serif SC', sans-serif;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.modal-actions button {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  font-family: 'Noto Serif SC', sans-serif;
+  transition: all 0.3s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: var(--text-mid);
+}
+
+.btn-cancel:hover { background: #eee; }
+
+.btn-confirm {
+  background: linear-gradient(135deg, var(--blue), var(--blue-light));
+  color: #fff;
+}
+
+.btn-confirm:hover {
+  box-shadow: 0 4px 15px rgba(74, 124, 255, 0.3);
+}
+
+/* ========== 动画 ========== */
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+  from { transform: translateY(15px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes cardFadeIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes dropIn {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 8px 30px rgba(74, 124, 255, 0.2); }
+  50% { box-shadow: 0 8px 40px rgba(74, 124, 255, 0.35); }
+}
+
+@keyframes toastIn {
+  from { transform: translateX(100px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .report-grid { grid-template-columns: 1fr; }
+  .dh-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .sidebar { width: 60px; min-width: 60px; }
+  .sidebar-logo h2, .menu-item span:not(.icon) { display: none; }
+  .menu-item { justify-content: center; padding: 14px 0; }
+  .main-wrapper { margin-left: 60px; }
+  .stats-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
-<div class="header">
-  <h1>🏔️ 灵山景区 · 管理后台</h1>
-  <div style="display:flex;align-items:center;gap:15px">
-    <div class="nav">
-      <button class="active" onclick="showPanel('dashboard')">数据大屏</button>
-      <button onclick="showPanel('knowledge')">知识库</button>
-      <button onclick="showPanel('character')">数字人</button>
-      <button onclick="showPanel('report')">分析报告</button>
+
+<!-- 左侧导航栏 -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🏔️</div>
+    <h2>灵山景区<span>管理后台</span></h2>
+  </div>
+  <nav class="sidebar-menu">
+    <div class="menu-item active" onclick="showPanel('dashboard', this)">
+      <span class="icon"></span><span>数据大屏</span>
     </div>
-    <button onclick="doLogout()" style="padding:8px 16px;border:1px solid #fff;border-radius:6px;background:transparent;color:#fff;cursor:pointer;font-size:13px">退出登录</button>
+    <div class="menu-divider"></div>
+    <div class="menu-item" onclick="showPanel('knowledge', this)">
+      <span class="icon">📚</span><span>知识库管理</span>
+    </div>
+    <div class="menu-item" onclick="showPanel('character', this)">
+      <span class="icon">🤖</span><span>数字人配置</span>
+    </div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" onclick="showPanel('report', this)">
+      <span class="icon"></span><span>分析报告</span>
+    </div>
+  </nav>
+</aside>
+
+<!-- 右侧主体 -->
+<div class="main-wrapper">
+
+  <!-- 顶部栏 -->
+  <header class="topbar">
+    <div class="topbar-title" id="pageTitle">数据大屏</div>
+    <div class="topbar-right">
+      <button class="btn-logout" onclick="doLogout()">退出登录</button>
+    </div>
+  </header>
+
+  <!-- 内容区 -->
+  <div class="content">
+
+    <!-- 数据大屏 -->
+    <div id="dashboard" class="panel active">
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📊 近7日对话趋势</div>
+          <div id="weeklyChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">😊 游客满意度趋势</div>
+          <div id="satisfactionChart"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔥 今日热门问答 TOP5</div>
+        <div id="hotList"></div>
+      </div>
+    </div>
+
+    <!-- 知识库管理 -->
+    <div id="knowledge" class="panel">
+      <div class="card">
+        <div class="kb-toolbar">
+          <input type="text" class="kb-search" id="kbSearch" placeholder="搜索知识条目..." oninput="filterKbTable()">
+          <select class="kb-filter" id="kbCategoryFilter" onchange="filterKbTable()">
+            <option value="">全部分类</option>
+            <option value="景点介绍">景点介绍</option>
+            <option value="文化故事">文化故事</option>
+            <option value="历史背景">历史背景</option>
+            <option value="景区知识">景区知识</option>
+          </select>
+          <button class="btn-add" onclick="showAddModal()">＋ 新增知识</button>
+        </div>
+        <table class="data-table" id="kbTable">
+          <thead><tr><th style="width:60px">ID</th><th>标题</th><th style="width:120px">分类</th><th style="width:160px">时间</th><th style="width:80px">操作</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="pagination" id="kbPagination"></div>
+      </div>
+    </div>
+
+    <!-- 数字人配置 -->
+    <div id="character" class="panel">
+      <div class="card">
+        <div class="card-title">🤖 数字人形象配置</div>
+        <div class="dh-layout">
+          <div class="dh-preview">
+            <div class="dh-avatar-circle" id="dhAvatarPreview">🧑💼</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text-dark)" id="dhPreviewName">AI导游小灵</div>
+            <div class="dh-preview-label">当前数字人</div>
+          </div>
+          <div class="dh-form" id="dhForm"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 分析报告 -->
+    <div id="report" class="panel">
+      <div class="report-grid">
+        <div class="card">
+          <div class="card-title">🎯 游客关注点分析（近7天）</div>
+          <div id="focusChart"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">💬 情感分布</div>
+          <div id="emotionBar"></div>
+        </div>
+        <div class="card report-full">
+          <div class="card-title">📈 情感趋势（近7天）</div>
+          <div id="emotionTrendChart"></div>
+        </div>
+        <div class="card report-full">
+          <div class="card-title">❓ 高频问题 TOP10</div>
+          <div id="hotQList"></div>
+        </div>
+        <div class="card report-full">
+          <div class="card-title">💡 服务建议</div>
+          <div id="suggestionsList"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
-<div class="content">
 
-  <div id="dashboard" class="panel active">
-    <div class="stats-grid" id="statsGrid"></div>
-    <div class="grid-2">
-      <div class="card">
-        <h3>📊 近7日对话趋势</h3>
-        <div id="weeklyChart"></div>
-      </div>
-      <div class="card">
-        <h3>😊 游客满意度趋势</h3>
-        <div id="satisfactionChart"></div>
-      </div>
-    </div>
-    <div class="card">
-      <h3>🔥 今日热门问答 TOP5</h3>
-      <div id="hotList"></div>
-    </div>
-  </div>
+<!-- 保存成功提示 -->
+<div class="save-toast" id="saveToast">✅ 保存成功</div>
 
-  <div id="knowledge" class="panel">
-    <div class="card">
-      <h3>➕ 新增知识</h3>
-      <div class="form-row">
-        <input type="text" id="kbTag" placeholder="分类（如：景点介绍）" value="景点介绍">
-      </div>
-      <textarea id="kbContent" placeholder="输入讲解内容..."></textarea>
-      <button class="btn btn-primary" onclick="addKnowledge()">添加</button>
-    </div>
-    <div class="card">
-      <h3> 知识库列表</h3>
-      <table id="kbTable"><thead><tr><th>ID</th><th>标题</th><th>分类</th><th>时间</th><th>操作</th></tr></thead><tbody></tbody></table>
-    </div>
-  </div>
-
-  <div id="character" class="panel">
-    <div class="card">
-      <h3> 数字人形象配置</h3>
-      <div id="dhForm"></div>
-    </div>
-  </div>
-
-  <div id="report" class="panel">
-    <div class="card">
-      <h3> 游客关注点分析（近7天）</h3>
-      <div id="focusChart"></div>
-    </div>
-    <div class="card">
-      <h3> 情感趋势报告（近7天）</h3>
-      <div id="emotionTrendChart"></div>
-    </div>
-    <div class="card">
-      <h3> 情感分布</h3>
-      <div class="emotion-bar" id="emotionBar"></div>
-    </div>
-    <div class="card">
-      <h3> 高频问题 TOP10</h3>
-      <table id="hotQTable"><thead><tr><th>问题</th><th>出现次数</th></tr></thead><tbody></tbody></table>
-    </div>
-    <div class="card">
-      <h3> 服务建议</h3>
-      <div id="suggestionsList"></div>
+<!-- 新增知识弹窗 -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <h3>➕ 新增知识条目</h3>
+    <select id="kbTag">
+      <option value="景点介绍">景点介绍</option>
+      <option value="文化故事">文化故事</option>
+      <option value="历史背景">历史背景</option>
+      <option value="景区知识">景区知识</option>
+    </select>
+    <textarea id="kbContent" placeholder="输入讲解内容..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="hideAddModal()">取消</button>
+      <button class="btn-confirm" onclick="addKnowledge()">确认添加</button>
     </div>
   </div>
 </div>
 
 <script>
-function showPanel(id) {
+const pageTitles = { dashboard: '数据大屏', knowledge: '知识库管理', character: '数字人配置', report: '分析报告' };
+
+function showPanel(id, el) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  event.target.classList.add('active');
-  if(id==='dashboard') loadDashboard();
-  if(id==='knowledge') loadKnowledge();
-  if(id==='character') loadDHConfig();
-  if(id==='report') loadReport();
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[id] || '';
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'knowledge') loadKnowledge();
+  if (id === 'character') loadDHConfig();
+  if (id === 'report') loadReport();
 }
+
+function toggleDropdown() {
+  document.getElementById('avatarDropdown').classList.toggle('show');
+}
+
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.admin-avatar-wrap')) {
+    document.getElementById('avatarDropdown').classList.remove('show');
+  }
+});
 
 async function loadDashboard() {
   const res = await fetch('/api/admin/stat/dashboard');
   const d = (await res.json()).data;
-  const posToday = d.today_emotion?.find(e=>e.emotion_tag==='正面')?.count||0;
-  const totalToday = d.today_emotion?.reduce((s,e)=>s+e.count,0)||0;
-  const satRate = totalToday > 0 ? Math.round(posToday/totalToday*100) : 0;
+  const posToday = d.today_emotion?.find(e => e.emotion_tag === '正面')?.count || 0;
+  const totalToday = d.today_emotion?.reduce((s, e) => s + e.count, 0) || 0;
+  const satRate = totalToday > 0 ? Math.round(posToday / totalToday * 100) : 0;
 
   document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card today"><div class="num">${d.today_chats||0}</div><div class="label">今日对话</div></div>
-    <div class="stat-card week"><div class="num">${d.week_chats||0}</div><div class="label">本周对话</div></div>
-    <div class="stat-card satisfaction"><div class="num">${satRate}%</div><div class="label">今日满意度</div></div>
-    <div class="stat-card hot"><div class="num">${d.total_chats||0}</div><div class="label">累计服务</div></div>`;
+    <div class="stat-card c-blue"><div class="stat-icon">💬</div><div class="stat-num">${d.today_chats || 0}</div><div class="stat-label">今日对话</div></div>
+    <div class="stat-card c-green"><div class="stat-icon">📅</div><div class="stat-num">${d.week_chats || 0}</div><div class="stat-label">本周对话</div></div>
+    <div class="stat-card c-gold"><div class="stat-icon">⭐</div><div class="stat-num">${satRate}%</div><div class="stat-label">今日满意度</div></div>
+    <div class="stat-card c-purple"><div class="stat-icon">📊</div><div class="stat-num">${d.total_chats || 0}</div><div class="stat-label">累计服务</div></div>`;
 
   let chartHtml = '';
   const trend = [...d.weekly_trend].reverse();
-  const maxC = Math.max(...trend.map(x=>x.chat_count), 1);
+  const maxC = Math.max(...trend.map(x => x.chat_count), 1);
   trend.forEach(x => {
-    const pct = x.chat_count/maxC*100;
+    const pct = x.chat_count / maxC * 100;
     chartHtml += `<div class="trend-row"><span class="trend-date">${x.visit_date}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${pct}%">${x.chat_count}次</div></div></div>`;
   });
   document.getElementById('weeklyChart').innerHTML = chartHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
   let satHtml = '';
-  const satData = d.satisfaction_trend||[];
+  const satData = d.satisfaction_trend || [];
   satData.reverse().forEach(x => {
     satHtml += `<div class="satisfaction-row"><span class="sat-date">${x.visit_date}</span><div class="sat-bar-wrap"><div class="sat-bar" style="width:${x.satisfaction_rate}%"></div></div><span class="sat-label">${x.satisfaction_rate}%</span></div>`;
   });
   document.getElementById('satisfactionChart').innerHTML = satHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
   const hotBody = document.getElementById('hotList');
-  const hotQs = d.today_hot_questions||[];
-  if(hotQs.length === 0) {
+  const hotQs = d.today_hot_questions || [];
+  if (hotQs.length === 0) {
     hotBody.innerHTML = '<p style="color:#999;text-align:center;padding:20px">今日暂无问答记录</p>';
   } else {
+    const maxFreq = Math.max(...hotQs.map(x => x.freq), 1);
+    const barColors = ['#4a7cff', '#6c9aff', '#a18cd1', '#43e97b', '#f0913a'];
     hotBody.innerHTML = hotQs.map((x, i) => {
-      const rankClass = i < 3 ? `rank-${i+1}` : 'rank-n';
-      return `<div class="hot-item"><span class="hot-rank ${rankClass}">${i+1}</span><span class="hot-text">${x.user_input}</span><span class="hot-freq">${x.freq}次</span></div>`;
+      const rankClass = i < 3 ? `hot-rank-${i + 1}` : 'hot-rank-n';
+      const pct = x.freq / maxFreq * 100;
+      return `<div class="hot-bar-item">
+        <span class="hot-rank-num ${rankClass}">${i + 1}</span>
+        <span class="hot-bar-text" title="${x.user_input}">${x.user_input}</span>
+        <div class="hot-bar-track"><div class="hot-bar-fill" style="width:${pct}%;background:${barColors[i % barColors.length]}">${x.freq}次</div></div>
+      </div>`;
     }).join('');
   }
 }
 
+// ========== 知识库 ==========
+let kbAllData = [];
+
 async function loadKnowledge() {
   const res = await fetch('/api/admin/knowledge/list');
-  const list = (await res.json()).data;
-  document.querySelector('#kbTable tbody').innerHTML = list.map(x =>
-    `<tr><td>${x.id}</td><td>${x.doc_title}</td><td>${x.category}</td><td>${x.create_time}</td>
-    <td><button class="btn btn-danger btn-sm" onclick="delKb(${x.id})">删除</button></td></tr>`
+  kbAllData = (await res.json()).data || [];
+  renderKbTable(kbAllData);
+}
+
+function getCategoryClass(cat) {
+  if (cat === '景点介绍') return 'cat-scenic';
+  if (cat === '文化故事') return 'cat-culture';
+  if (cat === '历史背景') return 'cat-history';
+  return 'cat-default';
+}
+
+function getCategoryIcon(cat) {
+  if (cat === '景点介绍') return '🏔️';
+  if (cat === '文化故事') return '📖';
+  if (cat === '历史背景') return '';
+  return '';
+}
+
+function renderKbTable(data) {
+  document.querySelector('#kbTable tbody').innerHTML = data.map(x =>
+    `<tr>
+      <td>${x.id}</td>
+      <td class="kb-title"><span class="kb-icon">${getCategoryIcon(x.category)}</span>${x.doc_title}</td>
+      <td><span class="category-tag ${getCategoryClass(x.category)}">${x.category}</span></td>
+      <td>${x.create_time}</td>
+      <td><button class="btn-add" style="background:linear-gradient(135deg,#f56c6c,#f89898);padding:5px 12px;font-size:12px;border-radius:8px" onclick="delKb(${x.id})">删除</button></td>
+    </tr>`
   ).join('');
 }
+
+function filterKbTable() {
+  const keyword = document.getElementById('kbSearch').value.toLowerCase();
+  const category = document.getElementById('kbCategoryFilter').value;
+  let filtered = kbAllData;
+  if (keyword) filtered = filtered.filter(x => x.doc_title.toLowerCase().includes(keyword));
+  if (category) filtered = filtered.filter(x => x.category === category);
+  renderKbTable(filtered);
+}
+
+function showAddModal() { document.getElementById('addModal').classList.add('show'); }
+function hideAddModal() { document.getElementById('addModal').classList.remove('show'); }
 
 async function addKnowledge() {
   const content = document.getElementById('kbContent').value.trim();
   const tag = document.getElementById('kbTag').value.trim();
-  if(!content) return alert('内容不能为空');
-  await fetch('/api/admin/knowledge/add', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content, tag})});
+  if (!content) return alert('内容不能为空');
+  await fetch('/api/admin/knowledge/add', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, tag }) });
   document.getElementById('kbContent').value = '';
+  hideAddModal();
   loadKnowledge();
 }
 
 async function delKb(id) {
-  if(!confirm('确定删除？')) return;
-  await fetch('/api/admin/knowledge/del', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id})});
+  if (!confirm('确定删除？')) return;
+  await fetch('/api/admin/knowledge/del', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
   loadKnowledge();
 }
 
+// ========== 数字人配置 ==========
 async function loadDHConfig() {
   const res = await fetch('/api/admin/dh/config/get');
   const cfg = (await res.json()).data || {};
+  if (cfg.config_name) document.getElementById('dhPreviewName').textContent = cfg.config_name;
   document.getElementById('dhForm').innerHTML = `
-    <div class="form-row"><input type="text" id="dhName" placeholder="名称" value="${cfg.config_name||''}"></div>
-    <div class="form-row"><input type="text" id="dhVoice" placeholder="TTS音色" value="${cfg.voice_type||''}"></div>
-    <div class="form-row"><input type="text" id="dhStyle" placeholder="服装风格" value="${cfg.costume_style||''}"></div>
-    <button class="btn btn-primary" onclick="saveDH()">保存配置</button>`;
+    <div class="form-group">
+      <label>数字人名称</label>
+      <input type="text" id="dhName" value="${cfg.config_name || ''}" placeholder="请输入名称">
+    </div>
+    <div class="form-group">
+      <label>TTS 音色</label>
+      <select id="dhVoice">
+        <option value="zh-CN-XiaoxiaoNeural" ${cfg.voice_type === 'zh-CN-XiaoxiaoNeural' ? 'selected' : ''}>晓晓（女声）</option>
+        <option value="zh-CN-YunxiNeural" ${cfg.voice_type === 'zh-CN-YunxiNeural' ? 'selected' : ''}>云希（男声）</option>
+        <option value="zh-CN-XiaoyiNeural" ${cfg.voice_type === 'zh-CN-XiaoyiNeural' ? 'selected' : ''}>晓伊（女声）</option>
+        <option value="zh-CN-YunjianNeural" ${cfg.voice_type === 'zh-CN-YunjianNeural' ? 'selected' : ''}>云健（男声）</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>服装风格</label>
+      <select id="dhStyle">
+        <option value="传统汉服" ${cfg.costume_style === '传统汉服' ? 'selected' : ''}>传统汉服</option>
+        <option value="现代休闲" ${cfg.costume_style === '现代休闲' ? 'selected' : ''}>现代休闲</option>
+        <option value="职业正装" ${cfg.costume_style === '职业正装' ? 'selected' : ''}>职业正装</option>
+        <option value="景区制服" ${cfg.costume_style === '景区制服' ? 'selected' : ''}>景区制服</option>
+      </select>
+    </div>
+    <button class="btn-save" onclick="saveDH()">💾 保存配置</button>`;
 }
 
 async function saveDH() {
-  await fetch('/api/admin/dh/config/save', {method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({dh_name:document.getElementById('dhName').value, voice:document.getElementById('dhVoice').value, style:document.getElementById('dhStyle').value})});
-  alert('保存成功');
+  await fetch('/api/admin/dh/config/save', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dh_name: document.getElementById('dhName').value, voice: document.getElementById('dhVoice').value, style: document.getElementById('dhStyle').value }) });
+  const toast = document.getElementById('saveToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2500);
+  if (document.getElementById('dhName').value) {
+    document.getElementById('dhPreviewName').textContent = document.getElementById('dhName').value;
+  }
 }
 
+// ========== 分析报告 ==========
 async function loadReport() {
   const [eRes, hRes, fRes, tRes, sRes] = await Promise.all([
     fetch('/api/admin/stat/emotion?days=7'),
@@ -248,50 +1397,84 @@ async function loadReport() {
   const emotionTrend = (await tRes.json()).data;
   const suggestions = (await sRes.json()).data;
 
-  const pos = emotions.find(e=>e.emotion_tag==='正面')?.count||0;
-  const neu = emotions.find(e=>e.emotion_tag==='中性')?.count||0;
-  const neg = emotions.find(e=>e.emotion_tag==='负面')?.count||0;
-  const total = pos+neu+neg||1;
+  const pos = emotions.find(e => e.emotion_tag === '正面')?.count || 0;
+  const neu = emotions.find(e => e.emotion_tag === '中性')?.count || 0;
+  const neg = emotions.find(e => e.emotion_tag === '负面')?.count || 0;
+  const total = pos + neu + neg || 1;
+  const posPct = Math.round(pos / total * 100);
+  const neuPct = Math.round(neu / total * 100);
+  const negPct = 100 - posPct - neuPct;
 
+  // 情感环形图
+  const donutHtml = `
+    <div class="emotion-donut-wrap">
+      <div class="emotion-donut" style="background: conic-gradient(#67c23a 0% ${posPct}%, #909399 ${posPct}% ${posPct + neuPct}%, #f56c6c ${posPct + neuPct}% 100%)">
+        <div class="emotion-donut-center">
+          <div class="pct">${posPct}%</div>
+          <div class="pct-label">正面占比</div>
+        </div>
+      </div>
+      <div class="emotion-legend">
+        <div class="legend-item"><div class="legend-dot pos"></div>正面<span class="legend-value">${pos} (${posPct}%)</span></div>
+        <div class="legend-item"><div class="legend-dot neu"></div>中性<span class="legend-value">${neu} (${neuPct}%)</span></div>
+        <div class="legend-item"><div class="legend-dot neg"></div>负面<span class="legend-value">${neg} (${negPct}%)</span></div>
+      </div>
+    </div>`;
+  document.getElementById('emotionBar').innerHTML = donutHtml;
+
+  // 关注点
   let focusHtml = '';
-  const maxF = Math.max(...focuses.map(x=>x.count), 1);
-  const colors = ['#667eea','#f093fb','#4facfe','#43e97b','#fa709a','#f6d365','#a18cd1','#ddd'];
+  const maxF = Math.max(...focuses.map(x => x.count), 1);
+  const focusColors = ['#4a7cff', '#a18cd1', '#43e97b', '#f0913a', '#fa709a', '#f6d365', '#4facfe', '#ddd'];
   focuses.forEach((x, i) => {
-    focusHtml += `<div class="trend-row"><span class="trend-date" style="width:100px">${x.focus}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${x.count/maxF*100}%;background:${colors[i%colors.length]}">${x.count}次 ${x.percent}%</div></div></div>`;
+    focusHtml += `<div class="trend-row"><span class="trend-date" style="width:100px">${x.focus}</span><div class="trend-bar-wrap"><div class="trend-bar" style="width:${x.count / maxF * 100}%;background:${focusColors[i % focusColors.length]}">${x.count}次 ${x.percent}%</div></div></div>`;
   });
   document.getElementById('focusChart').innerHTML = focusHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
+  // 情感趋势
   let trendHtml = '';
   emotionTrend.forEach(x => {
-    const pPct = x.total > 0 ? Math.round(x.positive/x.total*100) : 0;
-    const nPct = x.total > 0 ? Math.round(x.negative/x.total*100) : 0;
-    trendHtml += `<div style="margin-bottom:12px"><span style="font-size:12px;color:#888">${x.visit_date}</span>
-      <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
-        <span style="font-size:11px;color:#67c23a;width:35px">正面${pPct}%</span>
-        <div style="flex:1;background:#f0f9eb;border-radius:4px;height:16px;overflow:hidden"><div style="width:${pPct}%;height:100%;background:#67c23a;border-radius:4px"></div></div>
-        <span style="font-size:11px;color:#f56c6c;width:35px">负面${nPct}%</span>
-        <div style="flex:1;background:#fef0f0;border-radius:4px;height:16px;overflow:hidden"><div style="width:${nPct}%;height:100%;background:#f56c6c;border-radius:4px"></div></div>
-      </div></div>`;
+    const pPct = x.total > 0 ? Math.round(x.positive / x.total * 100) : 0;
+    const nPct = x.total > 0 ? Math.round(x.negative / x.total * 100) : 0;
+    trendHtml += `<div class="emotion-trend-row">
+      <div class="emotion-trend-date">${x.visit_date}</div>
+      <div class="emotion-trend-bars">
+        <span class="emotion-trend-label pos-label">正面 ${pPct}%</span>
+        <div class="emotion-trend-track pos-track"><div class="emotion-trend-fill pos-fill" style="width:${pPct}%"></div></div>
+        <span class="emotion-trend-label neg-label">负面 ${nPct}%</span>
+        <div class="emotion-trend-track neg-track"><div class="emotion-trend-fill neg-fill" style="width:${nPct}%"></div></div>
+      </div>
+    </div>`;
   });
   document.getElementById('emotionTrendChart').innerHTML = trendHtml || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
-  document.getElementById('emotionBar').innerHTML = `
-    <div class="emotion-item emotion-pos"><div style="font-size:24px">${pos}</div><div>正面 ${Math.round(pos/total*100)}%</div></div>
-    <div class="emotion-item emotion-neu"><div style="font-size:24px">${neu}</div><div>中性 ${Math.round(neu/total*100)}%</div></div>
-    <div class="emotion-item emotion-neg"><div style="font-size:24px">${neg}</div><div>负面 ${Math.round(neg/total*100)}%</div></div>`;
+  // 高频问题
+  const maxQ = Math.max(...hotQs.map(x => x.freq), 1);
+  document.getElementById('hotQList').innerHTML = hotQs.map((x, i) => `
+    <div class="hotq-item">
+      <span class="hotq-num">${i + 1}</span>
+      <span class="hotq-text" title="${x.user_input}">${x.user_input}</span>
+      <div class="hotq-bar-wrap"><div class="hotq-bar" style="width:${x.freq / maxQ * 100}%"></div></div>
+      <span class="hotq-freq">${x.freq}次</span>
+      <button class="hotq-action">查看</button>
+    </div>`).join('') || '<p style="color:#999;text-align:center;padding:20px">暂无数据</p>';
 
-  document.querySelector('#hotQTable tbody').innerHTML = hotQs.map(x =>
-    `<tr><td>${x.user_input}</td><td>${x.freq}</td></tr>`).join('');
-
+  // 服务建议
+  const priorityLabels = ['高', '中', '低'];
+  const priorityClasses = ['priority-high', 'priority-mid', 'priority-low'];
   let sugHtml = '';
-  suggestions.forEach(s => {
-    sugHtml += `<div style="padding:12px;margin-bottom:8px;background:#f8f9fa;border-radius:8px;border-left:4px solid #667eea;font-size:14px;color:#333">${s}</div>`;
+  suggestions.forEach((s, i) => {
+    const pi = i % 3;
+    sugHtml += `<div class="suggestion-card">
+      <span class="priority-tag ${priorityClasses[pi]}">${priorityLabels[pi]}</span>
+      <span>${s}</span>
+    </div>`;
   });
   document.getElementById('suggestionsList').innerHTML = sugHtml || '<p style="color:#999">暂无建议</p>';
 }
 
 async function doLogout() {
-  await fetch('/api/admin/logout', {method:'POST'});
+  await fetch('/api/admin/logout', { method: 'POST' });
   window.location.href = '/';
 }
 
