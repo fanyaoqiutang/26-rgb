@@ -12,8 +12,13 @@ def text_to_audio(text: str, filename: str = None, voice: str = None) -> str:
     save_path = os.path.join(AUDIO_CACHE_PATH, filename)
     if voice is None:
         voice = DEFAULT_VOICE
-    communicate = edge_tts.Communicate(text, voice)
-    communicate.save_sync(save_path)
+
+    try:
+        communicate = edge_tts.Communicate(text, voice)
+        communicate.save_sync(save_path)
+    except Exception as e:
+        print(f"[TTS] 语音生成失败: {e}")
+        return ""
 
     for old in glob.glob(os.path.join(AUDIO_CACHE_PATH, "reply_*.mp3")):
         if old != save_path:

@@ -664,7 +664,7 @@ body::before {
 
 .dh-name-tag {
   position: absolute;
-  top: 20px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(10, 22, 40, 0.6);
@@ -911,7 +911,7 @@ function selectSpot(scenicName, spotName, spotDesc, el) {
     body: JSON.stringify({question: `请为我详细介绍${spotName}，${spotDesc}。包括历史背景、特色亮点和游览建议。`, tag: currentTag})
   }).then(res => res.json()).then(data => {
     hideLoading();
-    if (data.code === 200) { addMsg(data.data.answer, 'ai'); addAudio(data.data.audio_url); }
+    if (data.code === 200) { addMsg(data.data.answer, 'ai'); if (data.data.audio_url) addAudio(data.data.audio_url); }
     else { addMsg('出错了：' + data.msg, 'ai'); }
   }).catch(() => { hideLoading(); addMsg('网络错误', 'ai'); });
 }
@@ -1063,7 +1063,7 @@ async function getRecommend() {
   try {
     const res = await fetch('/api/tourist/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tag:currentTag})});
     const data = await res.json(); hideLoading();
-    if (data.code===200) { addMsg(data.data.answer,'ai'); addAudio(data.data.audio_url); } else { addMsg('推荐失败','ai'); }
+    if (data.code===200) { addMsg(data.data.answer,'ai'); if (data.data.audio_url) addAudio(data.data.audio_url); } else { addMsg('推荐失败','ai'); }
   } catch(e) { hideLoading(); addMsg('网络错误','ai'); }
 }
 

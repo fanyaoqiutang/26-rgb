@@ -3,9 +3,10 @@ from ai_core.vector_milvus import search_relevant_context
 from ai_core.llm_chat import get_guide_answer
 from ai_core.tts_edgetts import text_to_audio
 from ai_core.asr_whisper import audio_file_to_text
-from database.db_crud import add_interact_record, get_digital_human_config
+from database.db_crud import add_interact_record
 from config import BASE_DIR
 import os
+import threading
 
 tourist_bp = Blueprint("tourist", __name__)
 
@@ -22,6 +23,15 @@ def invalidate_dh_cache():
     _dh_config_cache = None
 
 
+def _async_generate_audio(ans_text: str, voice: str, question: str, emotion: str):
+    """后台线程生成音频并记录交互"""
+    try:
+        text_to_audio(ans_text, voice=voice)
+        add_interact_record(question, ans_text, emotion)
+    except Exception as e:
+        print(f"[async_audio] 异常: {e}")
+
+
 @tourist_bp.route("/text_chat", methods=["POST"])
 def text_chat():
     data = request.json
@@ -31,19 +41,20 @@ def text_chat():
         return jsonify({"code": 400, "msg": "问题不能为空"})
 
     try:
+        ans_text = get_guide_answer(question, user_tag)
+        emotion = analyze_emotion(ans_text)
+
         cfg = get_dh_config()
         voice = cfg.get("voice_type")
-        know_text = search_relevant_context(question)
-        ans_text = get_guide_answer(question, user_tag)
-        audio_path = text_to_audio(ans_text, voice=voice)
-        emotion = analyze_emotion(ans_text)
-        add_interact_record(question, ans_text, emotion)
+
+        threading.Thread(target=_async_generate_audio, args=(ans_text, voice, question, emotion), daemon=True).start()
+
         return jsonify({
             "code": 200,
             "data": {
                 "answer": ans_text,
                 "emotion": emotion,
-                "audio_url": audio_path,
+                "audio_url": None,
             }
         })
     except Exception as e:
@@ -72,21 +83,27 @@ def voice_chat():
     if not question:
         return jsonify({"code": 400, "msg": "语音识别失败"})
 
-    cfg = get_dh_config()
-    voice = cfg.get("voice_type")
-    ans_text = get_guide_answer(question, user_tag)
-    reply_audio = text_to_audio(ans_text, voice=voice)
-    emotion = analyze_emotion(ans_text)
-    add_interact_record(question, ans_text, emotion)
-    return jsonify({
-        "code": 200,
-        "data": {
-            "question": question,
-            "answer": ans_text,
-            "emotion": emotion,
-            "audio_url": reply_audio,
-        }
-    })
+    try:
+        ans_text = get_guide_answer(question, user_tag)
+        emotion = analyze_emotion(ans_text)
+
+        cfg = get_dh_config()
+        voice = cfg.get("voice_type")
+
+        threading.Thread(target=_async_generate_audio, args=(ans_text, voice, question, emotion), daemon=True).start()
+
+        return jsonify({
+            "code": 200,
+            "data": {
+                "question": question,
+                "answer": ans_text,
+                "emotion": emotion,
+                "audio_url": None,
+            }
+        })
+    except Exception as e:
+        print(f"[voice_chat] 异常: {e}")
+        return jsonify({"code": 500, "msg": f"服务异常: {str(e)}"})
 
 
 @tourist_bp.route("/recommend", methods=["POST"])
@@ -99,14 +116,17 @@ def recommend():
     prompt = f"""你是灵山景区导游，根据游客兴趣标签「{tag}」，推荐2-3条个性化游览路线，
 每条路线包含：路线名称、途经景点、推荐理由。语言简洁口语化。"""
 
-    cfg = get_dh_config()
-    voice = cfg.get("voice_type")
-    ans_text = get_guide_answer(prompt, tag)
-    audio_path = text_to_audio(ans_text, voice=voice)
-    return jsonify({
-        "code": 200,
-        "data": {"answer": ans_text, "audio_url": audio_path}
-    })
+    try:
+        ans_text = get_guide_answer(prompt, tag)
+        cfg = get_dh_config()
+        voice = cfg.get("voice_type")
+        threading.Thread(target=_async_generate_audio, args=(ans_text, voice, "", "正面"), daemon=True).start()
+        return jsonify({
+            "code": 200,
+            "data": {"answer": ans_text, "audio_url": None}
+        })
+    except Exception as e:
+        return jsonify({"code": 500, "msg": f"服务异常: {str(e)}"})
 
 
 @tourist_bp.route("/feedback", methods=["POST"])
@@ -137,7 +157,7 @@ def analyze_emotion(text: str) -> str:
     positive_words = ["欢迎", "美丽", "精彩", "推荐", "棒", "好", "赞", "喜欢", "开心"]
     negative_words = ["抱歉", "遗憾", "无法", "没有", "不足", "差"]
     pos = sum(1 for w in positive_words if w in text)
-    neg = sum(1 for w in negative_words if w in text)
+    neg = sum(1 for w in negative_words in w in text)
     if pos > neg:
         return "正面"
     elif neg > pos:
