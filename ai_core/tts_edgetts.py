@@ -1,5 +1,6 @@
 import edge_tts
 import os
+import glob
 from config import AUDIO_CACHE_PATH
 
 DEFAULT_VOICE = "zh-CN-XiaoyiNeural"
@@ -13,6 +14,14 @@ def text_to_audio(text: str, filename: str = None, voice: str = None) -> str:
         voice = DEFAULT_VOICE
     communicate = edge_tts.Communicate(text, voice)
     communicate.save_sync(save_path)
+
+    for old in glob.glob(os.path.join(AUDIO_CACHE_PATH, "reply_*.mp3")):
+        if old != save_path:
+            try:
+                os.remove(old)
+            except OSError:
+                pass
+
     return save_path
 
 if __name__ == "__main__":

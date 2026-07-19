@@ -267,7 +267,7 @@ body::before {
   margin-bottom: 12px;
   padding: 14px 20px;
   border-radius: 16px;
-  max-width: 75%;
+  max-width: 85%;
   font-size: 15px;
   line-height: 1.7;
   position: relative;
@@ -360,7 +360,7 @@ body::before {
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.04);
   margin-left: 8px;
-  max-width: 75%;
+  max-width: 85%;
 }
 
 .audio-controls { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--text-dim); }
@@ -535,6 +535,10 @@ body::before {
   animation: pulseRed 1s ease-in-out infinite;
 }
 
+.btn-voice.recording .waveform { display: flex; }
+
+.btn-voice.recording .mic-icon-btn { display: none; }
+
 .waveform {
   position: absolute;
   bottom: 110%; left: 50%;
@@ -569,8 +573,8 @@ body::before {
 
 /* ===== 右栏：数字人面板 ===== */
 .col-right {
-  width: 580px;
-  min-width: 500px;
+  width: 420px;
+  min-width: 360px;
   background: transparent;
   border-left: 1px solid var(--glass-border);
   display: flex;
@@ -660,7 +664,7 @@ body::before {
 
 .dh-name-tag {
   position: absolute;
-  bottom: 40px;
+  top: 20px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(10, 22, 40, 0.6);
@@ -695,18 +699,18 @@ body::before {
 
 /* ========== 响应式 ========== */
 @media (max-width: 1500px) {
-  .col-right { width: 500px; min-width: 440px; }
-  .dh-halo { width: 480px; height: 480px; }
+  .col-right { width: 460px; min-width: 440px; }
+  .dh-halo { width: 440px; height: 480px; }
 }
 
 @media (max-width: 1300px) {
-  .col-right { width: 440px; min-width: 380px; }
-  .dh-halo { width: 420px; height: 420px; }
+  .col-right { width: 400px; min-width: 380px; }
+  .dh-halo { width: 380px; height: 420px; }
 }
 
 @media (max-width: 1100px) {
-  .col-right { width: 380px; min-width: 320px; }
-  .dh-halo { width: 360px; height: 360px; }
+  .col-right { width: 360px; min-width: 320px; }
+  .dh-halo { width: 300px; height: 360px; }
   .chat-zone, .input-zone { padding-left: 24px; padding-right: 24px; }
 }
 
@@ -785,7 +789,9 @@ body::before {
         <div class="input-wrap">
           <input type="text" id="userInput" placeholder="输入你的问题，或点击左侧景点开始游览..." onkeydown="if(event.key==='Enter')sendText()">
         </div>
+        <button class="btn-send" onclick="sendText()">➤</button>
         <button class="btn-voice" id="voiceBtn">
+          <span class="mic-icon-btn">🎙</span>
           <div class="waveform">
             <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
           </div>
