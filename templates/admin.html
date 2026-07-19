@@ -1345,10 +1345,30 @@ async function delKb(id) {
 }
 
 // ========== 数字人配置 ==========
+const MODEL_PORTRAIT_BASE = 'http://localhost:3000/sentio/characters/free/';
+const AVAILABLE_MODELS = [
+  { id: 'HaruGreeter', label: 'HaruGreeter' },
+  { id: 'Haru', label: 'Haru' },
+  { id: 'Kei', label: 'Kei' },
+  { id: 'Mao', label: 'Mao' },
+  { id: 'Chitose', label: 'Chitose' },
+  { id: 'Hiyori', label: 'Hiyori' },
+  { id: 'Shizuku', label: 'Shizuku' },
+  { id: 'Izumi', label: 'Izumi' },
+  { id: 'Hibiki', label: 'Hibiki' },
+  { id: 'Epsilon', label: 'Epsilon' },
+  { id: 'Rice', label: 'Rice' },
+  { id: 'Tsumiki', label: 'Tsumiki' },
+];
+
 async function loadDHConfig() {
   const res = await fetch('/api/admin/dh/config/get');
   const cfg = (await res.json()).data || {};
   if (cfg.config_name) document.getElementById('dhPreviewName').textContent = cfg.config_name;
+  updateAvatarPreview(cfg.character_model || 'HaruGreeter');
+  const modelOptions = AVAILABLE_MODELS.map(m =>
+    `<option value="${m.id}" ${cfg.character_model === m.id ? 'selected' : ''}>${m.label}</option>`
+  ).join('');
   document.getElementById('dhForm').innerHTML = `
     <div class="form-group">
       <label>数字人名称</label>
@@ -1364,20 +1384,32 @@ async function loadDHConfig() {
       </select>
     </div>
     <div class="form-group">
-      <label>服装风格</label>
-      <select id="dhStyle">
-        <option value="传统汉服" ${cfg.costume_style === '传统汉服' ? 'selected' : ''}>传统汉服</option>
-        <option value="现代休闲" ${cfg.costume_style === '现代休闲' ? 'selected' : ''}>现代休闲</option>
-        <option value="职业正装" ${cfg.costume_style === '职业正装' ? 'selected' : ''}>职业正装</option>
-        <option value="景区制服" ${cfg.costume_style === '景区制服' ? 'selected' : ''}>景区制服</option>
+      <label>角色模型</label>
+      <select id="dhModel" onchange="onModelChange()">
+        ${modelOptions}
       </select>
     </div>
     <button class="btn-save" onclick="saveDH()">💾 保存配置</button>`;
 }
 
+function onModelChange() {
+  const model = document.getElementById('dhModel').value;
+  updateAvatarPreview(model);
+}
+
+function updateAvatarPreview(modelName) {
+  const avatarEl = document.getElementById('dhAvatarPreview');
+  avatarEl.innerHTML = `<img src="${MODEL_PORTRAIT_BASE}${modelName}/${modelName}.png" alt="${modelName}" onerror="this.style.display='none'">`;
+}
+
 async function saveDH() {
   await fetch('/api/admin/dh/config/save', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ dh_name: document.getElementById('dhName').value, voice: document.getElementById('dhVoice').value, style: document.getElementById('dhStyle').value }) });
+    body: JSON.stringify({
+      dh_name: document.getElementById('dhName').value,
+      voice: document.getElementById('dhVoice').value,
+      style: '',
+      character_model: document.getElementById('dhModel').value
+    }) });
   const toast = document.getElementById('saveToast');
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 2500);

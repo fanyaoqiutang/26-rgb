@@ -139,5 +139,5 @@ export function useAppConfig() {
         
     }
 
-    return { getAppConfig, setAppConfig, resetAppConfig, resetAppEngine, setCurrentTheme }
+    return { getAppConfig, setAppConfig, resetAppConfig, resetAppEngine, setCurrentTheme, setCurrentCharacter }
 }

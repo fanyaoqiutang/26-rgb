@@ -133,8 +133,12 @@ def dh_config_save():
     save_dh_config(
         dh_name=req.get("dh_name"),
         voice=req.get("voice"),
-        style=req.get("style")
+        style=req.get("style"),
+        character_model=req.get("character_model", "HaruGreeter")
     )
+    # 清除游客端缓存，使新配置立即生效
+    from api.tourist_api import invalidate_dh_cache
+    invalidate_dh_cache()
     return jsonify({"code": 200, "msg": "数字人配置保存成功"})
 
 

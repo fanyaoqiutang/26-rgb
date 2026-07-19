@@ -3,11 +3,23 @@ from ai_core.vector_milvus import search_relevant_context
 from ai_core.llm_chat import get_guide_answer
 from ai_core.tts_edgetts import text_to_audio
 from ai_core.asr_whisper import audio_file_to_text
-from database.db_crud import add_interact_record
+from database.db_crud import add_interact_record, get_digital_human_config
 from config import BASE_DIR
 import os
 
 tourist_bp = Blueprint("tourist", __name__)
+
+_dh_config_cache = None
+
+def get_dh_config():
+    global _dh_config_cache
+    if _dh_config_cache is None:
+        _dh_config_cache = get_digital_human_config() or {}
+    return _dh_config_cache
+
+def invalidate_dh_cache():
+    global _dh_config_cache
+    _dh_config_cache = None
 
 
 @tourist_bp.route("/text_chat", methods=["POST"])
@@ -19,9 +31,11 @@ def text_chat():
         return jsonify({"code": 400, "msg": "问题不能为空"})
 
     try:
+        cfg = get_dh_config()
+        voice = cfg.get("voice_type")
         know_text = search_relevant_context(question)
         ans_text = get_guide_answer(question, user_tag)
-        audio_path = text_to_audio(ans_text)
+        audio_path = text_to_audio(ans_text, voice=voice)
         emotion = analyze_emotion(ans_text)
         add_interact_record(question, ans_text, emotion)
         return jsonify({
@@ -58,8 +72,10 @@ def voice_chat():
     if not question:
         return jsonify({"code": 400, "msg": "语音识别失败"})
 
+    cfg = get_dh_config()
+    voice = cfg.get("voice_type")
     ans_text = get_guide_answer(question, user_tag)
-    reply_audio = text_to_audio(ans_text)
+    reply_audio = text_to_audio(ans_text, voice=voice)
     emotion = analyze_emotion(ans_text)
     add_interact_record(question, ans_text, emotion)
     return jsonify({
@@ -83,8 +99,10 @@ def recommend():
     prompt = f"""你是灵山景区导游，根据游客兴趣标签「{tag}」，推荐2-3条个性化游览路线，
 每条路线包含：路线名称、途经景点、推荐理由。语言简洁口语化。"""
 
+    cfg = get_dh_config()
+    voice = cfg.get("voice_type")
     ans_text = get_guide_answer(prompt, tag)
-    audio_path = text_to_audio(ans_text)
+    audio_path = text_to_audio(ans_text, voice=voice)
     return jsonify({
         "code": 200,
         "data": {"answer": ans_text, "audio_url": audio_path}
@@ -98,6 +116,21 @@ def feedback():
     from database.db_crud import update_last_record_emotion
     update_last_record_emotion(emotion)
     return jsonify({"code": 200, "msg": "感谢反馈"})
+
+
+@tourist_bp.route("/dh_config", methods=["GET"])
+def dh_config():
+    """游客端获取当前数字人配置（角色+音色）"""
+    cfg = get_dh_config()
+    return jsonify({
+        "code": 200,
+        "data": {
+            "name": cfg.get("config_name", "AI导游小灵"),
+            "voice": cfg.get("voice_type", "zh-CN-XiaoyiNeural"),
+            "costume": cfg.get("costume_style", "职业正装"),
+            "character_model": cfg.get("character_model", "HaruGreeter"),
+        }
+    })
 
 
 def analyze_emotion(text: str) -> str:

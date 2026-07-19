@@ -109,7 +109,7 @@ body::before {
 .left-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 12px;
+  padding: 0 8px 16px;
 }
 
 .left-list::-webkit-scrollbar { width: 3px; }
@@ -176,8 +176,6 @@ body::before {
   border-top: 1px solid var(--glass-border);
   font-size: 11px;
   color: var(--text-dim);
-  text-align: center;
-  opacity: 0.5;
 }
 
 /* ===== 中栏：对话区 ===== */
@@ -435,8 +433,6 @@ body::before {
 .tag-label {
   font-size: 12px;
   color: var(--text-dim);
-  margin-bottom: 6px;
-  text-align: center;
   letter-spacing: 1px;
 }
 
@@ -762,13 +758,12 @@ body::before {
   <!-- 中栏：对话区 -->
   <main class="col-center">
 
-    <!-- 顶部导航 -->
     <nav class="center-nav">
       <div class="center-nav-left">
         <span id="navSpotName">灵山胜境</span>
       </div>
       <div class="center-nav-right">
-        <span>数字人导游小灵</span>
+        <span>数字人导游</span>
         <div class="online-dot"></div>
         <a class="admin-link" href="/admin_login">管理员登录</a>
       </div>
@@ -777,7 +772,6 @@ body::before {
     <!-- 对话气泡区 -->
     <div class="chat-zone" id="chatBox"></div>
 
-    <!-- 标签+输入组合区 -->
     <div class="input-zone">
       <div class="tag-btns">
         <span class="tag-label">讲解风格</span>
@@ -791,7 +785,6 @@ body::before {
         <div class="input-wrap">
           <input type="text" id="userInput" placeholder="输入你的问题，或点击左侧景点开始游览..." onkeydown="if(event.key==='Enter')sendText()">
         </div>
-        <button class="btn-send" onclick="sendText()">➤</button>
         <button class="btn-voice" id="voiceBtn">
           <div class="waveform">
             <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
@@ -811,12 +804,31 @@ body::before {
         <div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div><div class="sw-bar"></div>
       </div>
     </div>
-    <div class="dh-name-tag">AI导游小灵</div>
+    <div class="dh-name-tag" id="dhNameTag">AI导游</div>
   </aside>
 
 </div>
 
 <script>
+// 页面加载时获取数字人配置
+let dhConfig = { name: 'AI导游小灵', voice: 'zh-CN-XiaoyiNeural', costume: '职业正装', character_model: 'HaruGreeter' };
+
+async function loadDHConfig() {
+  try {
+    const res = await fetch('/api/tourist/dh_config');
+    const data = await res.json();
+    if (data.code === 200) {
+      dhConfig = data.data;
+      document.getElementById('dhNameTag').textContent = dhConfig.name;
+      const modelName = dhConfig.character_model || 'HaruGreeter';
+      const iframe = document.getElementById('live2dFrame');
+      iframe.src = `http://localhost:3000/sentio?embed=true&character=${modelName}`;
+    }
+  } catch(e) {
+    console.warn('获取数字人配置失败，使用默认值', e);
+  }
+}
+
 const scenicData = [
   { name: '灵山胜境', spots: [
     { name: '灵山大佛', desc: '高88米青铜释迦牟尼立像', icon: '' },
@@ -1050,10 +1062,13 @@ async function getRecommend() {
 }
 
 renderScenicList(scenicData);
-const welcomeText = '欢迎来到灵山胜境！我是你的AI导游小灵，有什么想了解的景点吗？';
+const welcomeText = '欢迎来到灵山胜境！我是你的AI导游，有什么想了解的景点吗？';
 const chatBox = document.getElementById('chatBox');
 chatBox._welcomeText = welcomeText;
 addMsg(welcomeText, 'ai');
+
+// 加载数字人配置（角色模型+名称）
+loadDHConfig();
 </script>
 
 </body>

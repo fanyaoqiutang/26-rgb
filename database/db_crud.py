@@ -174,11 +174,11 @@ def get_digital_human_config():
     """获取数字人配置（别名）"""
     return get_default_human_config()
 
-def save_dh_config(dh_name: str, voice: str, style: str):
+def save_dh_config(dh_name: str, voice: str, style: str, character_model: str = "HaruGreeter"):
     """保存数字人配置"""
     conn, cur = get_conn()
-    sql = "UPDATE digital_human_config SET config_name=%s, voice_type=%s, costume_style=%s WHERE is_default=1"
-    cur.execute(sql, (dh_name, voice, style))
+    sql = "UPDATE digital_human_config SET config_name=%s, voice_type=%s, costume_style=%s, character_model=%s WHERE is_default=1"
+    cur.execute(sql, (dh_name, voice, style, character_model))
     conn.commit()
     close_conn(conn, cur)
     return True
