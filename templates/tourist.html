@@ -245,8 +245,25 @@ async function sendFeedback(btn, emotion) {
 }
 
 let live2dNotified = false;
+let isGuidePlaying = false;
 
 let currentAudioId = 0;
+
+window.addEventListener('message', (event) => {
+  const msg = event.data || {};
+  if (msg.type === 'playingStatus') {
+    isGuidePlaying = msg.playing;
+    if (isGuidePlaying) {
+      alert('导游正在讲解中，请等待播放完毕~');
+    } else if (pendingPlay) {
+      const { audioSrc, aid } = pendingPlay;
+      pendingPlay = null;
+      doPlayGuideAudio(audioSrc, aid);
+    }
+  }
+});
+
+let pendingPlay = null;
 
 function addAudio(url) {
   const box = document.getElementById('chatBox');
@@ -265,9 +282,20 @@ function addAudio(url) {
 }
 
 function playGuideAudio(audioSrc, aid) {
+  const iframe = document.getElementById('live2dFrame');
+  if (iframe && iframe.contentWindow) {
+    pendingPlay = { audioSrc, aid };
+    iframe.contentWindow.postMessage({ type: 'queryPlaying' }, '*');
+  } else {
+    doPlayGuideAudio(audioSrc, aid);
+  }
+}
+
+function doPlayGuideAudio(audioSrc, aid) {
   stopGuideAudio();
   const status = document.getElementById('audioStatus-' + aid);
   if (status) status.textContent = '🔊 播放中...';
+  isGuidePlaying = true;
   const fullUrl = window.location.origin + audioSrc;
   const iframe = document.getElementById('live2dFrame');
   if (iframe && iframe.contentWindow) {
@@ -280,6 +308,7 @@ function stopGuideAudio() {
   if (iframe && iframe.contentWindow) {
     iframe.contentWindow.postMessage({ type: 'stopAudio' }, '*');
   }
+  isGuidePlaying = false;
   document.querySelectorAll('[id^="audioStatus-"]').forEach(el => {
     if (el.textContent.includes('播放中')) el.textContent = '🔊 已停止';
   });
