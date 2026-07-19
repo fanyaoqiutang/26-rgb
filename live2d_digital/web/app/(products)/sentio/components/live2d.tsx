@@ -82,6 +82,7 @@ export function Live2d() {
             }
             if (msg.type === 'stopAudio') {
                 Live2dManager.getInstance().stopAudio();
+                currentAudioId = 0;
                 return;
             }
             if (msg.type !== 'playAudio' || !msg.audioUrl) return;

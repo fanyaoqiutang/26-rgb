@@ -19,18 +19,6 @@ export default function App() {
         const embed = params.get('embed') === 'true';
         setIsEmbed(embed);
         setIsLoading(false);
-
-        if (embed) {
-            const handler = (event: MessageEvent) => {
-                const { type, audioUrl } = event.data || {};
-                if (type === 'playAudio' && audioUrl) {
-                    const audio = new Audio(audioUrl);
-                    audio.crossOrigin = 'anonymous';
-                    audio.play().catch(() => {});
-                }
-            };
-            window.addEventListener('message', handler);
-        }
     }, [])
 
     if (isLoading) {
