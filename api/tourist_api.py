@@ -3,7 +3,7 @@ from ai_core.vector_milvus import search_relevant_context
 from ai_core.llm_chat import get_guide_answer
 from ai_core.tts_edgetts import text_to_audio
 from ai_core.asr_whisper import audio_file_to_text
-from database.db_crud import add_interact_record
+from database.db_crud import add_interact_record, get_digital_human_config
 from config import BASE_DIR
 import os
 import threading
@@ -157,7 +157,7 @@ def analyze_emotion(text: str) -> str:
     positive_words = ["欢迎", "美丽", "精彩", "推荐", "棒", "好", "赞", "喜欢", "开心"]
     negative_words = ["抱歉", "遗憾", "无法", "没有", "不足", "差"]
     pos = sum(1 for w in positive_words if w in text)
-    neg = sum(1 for w in negative_words in w in text)
+    neg = sum(1 for w in negative_words if w in text)
     if pos > neg:
         return "正面"
     elif neg > pos:
